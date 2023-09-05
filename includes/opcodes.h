@@ -64,15 +64,17 @@
 #define R_TYPE_64 0x3b
     #define ADDSUB   0x0
         #define ADDW    0x00
-        #define MULW    0x01
+        //#define MULW    0x01
         #define SUBW    0x20
-    #define DIVW    0x4
+    //#define DIVW    0x4
     #define SLLW    0x1
     #define SRW     0x5
         #define SRLW   0x00
-        #define DIVUW   0x01
+        //#define DIVUW   0x01
         #define SRAW   0x20
+    /*
     #define REMW    0x6
     #define REMUW   0x7
+    */
 
 #endif
