@@ -769,7 +769,6 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
             return 0;
         */
             /*exit(1);*/
-    }
     return 1;
 }
 
