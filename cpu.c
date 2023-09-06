@@ -550,9 +550,9 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
         case 1: cpu->mode = Supervisor; break;
     }
     if ((csr_read(cpu, SSTATUS) >> 5) == 1) {
-        csr_write(cpu, csr_read(cpu, SSTATUS) | (1 << 1));
+        csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 1));
     } else {
-        csr_write(cpu, csr_read(cpu, SSTATUS) & !(1 << 1));
+        csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) & !(1 << 1));
     }
 }
 
