@@ -2,6 +2,7 @@
 
 #include "bus.h"
 #include "opcodes.h"
+#include "csr.h"
 
 #define ANSI_YELLOW   "\x1b[33m"
 #define ANSI_RESET   "\x1b[0m"
@@ -77,6 +78,10 @@ uint32_t shamt(uint32_t inst) {
     return (uint32_t) (imm_I(inst) & 0x1f); // TODO: 0x1f / 0x3f ?
 }
 
+uint64_t csr(uint32_t inst) {
+    // csr[11:0] = inst[31:20]
+    return ((inst & 0xfff00000) >> 20);
+}
 
 void exec_LUI(CPU* cpu, uint32_t inst) {
     // LUI places upper 20 bits of U-immediate value to rd
@@ -343,6 +348,38 @@ void exec_REMUW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] % (int64_t) cpu->regs[rs2(inst)];
 }
 
+void exec_FENCE(CPU* cpu, uint32_t inst) {}
+
+void exec_ECALL(CPU* cpu, uint32_t inst) {}
+void exec_EBREAK(CPU* cpu, uint32_t inst) {}
+
+void exec_ECALLBREAK(CPU* cpu, uint32_t inst) {
+    if (imm_I(inst) == 0x0)
+        exec_ECALL(cpu, inst);
+    if (imm_I(inst) == 0x1)
+        exec_EBREAK(cpu, inst);
+}
+
+void exec_CSRRW(CPU* cpu, uint32_t inst) {
+    cpu->regs[rd(inst)] = csr_read(cpu, csr(inst));
+    csr_write(cpu, csr(inst), cpu->regs[rs1(inst)]);
+}
+void exec_CSRRS(CPU* cpu, uint32_t inst) {
+    csr_write(cpu, csr(inst), cpu->csr[csr(inst)] | cpu->regs[rs1(inst)]);
+}
+void exec_CSRRC(CPU* cpu, uint32_t inst) {
+    csr_write(cpu, csr(inst), cpu->csr[csr(inst)] & !(cpu->regs[rs1(inst)]) );
+}
+void exec_CSRRWI(CPU* cpu, uint32_t inst) {
+    csr_write(cpu, csr(inst), rs1(inst));
+}
+void exec_CSRRSI(CPU* cpu, uint32_t inst) {
+    csr_write(cpu, csr(inst), cpu->csr[csr(inst)] | rs1(inst));
+}
+void exec_CSRRCI(CPU* cpu, uint32_t inst) {
+    csr_write(cpu, csr(inst), cpu->csr[csr(inst)] & !rs1(inst));
+}
+
 int cpu_execute(CPU *cpu, uint32_t inst) {
     int opcode = inst & 0x7f;           // opcode in bits 6..0
     int funct3 = (inst >> 12) & 0x7;    // funct3 in bits 14..12
@@ -350,8 +387,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
 
     cpu->regs[0] = 0;                    // x0 reset to 0 at each cycle
 
-    printf("%s\nPC: %#.8lx Inst: %#.8x <OpCode: %#.2x, funct3:%#x, funct7:%#x>%s\n",
-            ANSI_YELLOW, cpu->pc-4, inst, opcode, funct3, funct7, ANSI_RESET); // DEBUG
+    printf("%s\n%#.8lx -> %s", ANSI_YELLOW, cpu->pc-4, ANSI_RESET);
 
     switch (opcode) {
         case LUI:   exec_LUI(cpu, inst); break;
@@ -470,6 +506,23 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     } break;
                 case REMW:  exec_REMW(cpu, inst); break;
                 case REMUW: exec_REMUW(cpu, inst); break;
+                default: ;
+            } break;
+
+            case CSR:
+            switch (funct3) {
+                case ECALLBREAK:    exec_ECALLBREAK(cpu, inst); break;
+                case CSRRW  :  exec_CSRRW(cpu, inst); break;  
+                case CSRRS  :  exec_CSRRS(cpu, inst); break;  
+                case CSRRC  :  exec_CSRRC(cpu, inst); break;  
+                case CSRRWI :  exec_CSRRWI(cpu, inst); break; 
+                case CSRRSI :  exec_CSRRSI(cpu, inst); break; 
+                case CSRRCI :  exec_CSRRCI(cpu, inst); break; 
+                default:
+                    fprintf(stderr, 
+                            "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct3:0x%x\n"
+                            , opcode, funct3, funct7);
+                    return 0;
             } break;
 
         default:
@@ -477,6 +530,8 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct3:0x%x\n"
                     , opcode, funct3, funct7);
             return 0;
+        
+        
             /*exit(1);*/
     }
     return 1;
@@ -484,20 +539,20 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
 
 void dump_registers(CPU *cpu) {
     char* abi[] = { // Application Binary Interface registers
-        "zero", " ra ", " sp ", " gp ",
-        " tp ", " t0 ", " t1 ", " t2 ",
-        " s0 ", " s1 ", " a0 ", " a1 ",
-        " a2 ", " a3 ", " a4 ", " a5 ",
-        " a6 ", " a7 ", " s2 ", " s3 ",
-        " s4 ", " s5 ", " s6 ", " s7 ",
-        " s8 ", " s9 ", " s10", " s11",
-        " t3 ", " t4 ", " t5 ", " t6 ",
+        "zero", "ra",  "sp",  "gp",
+          "tp", "t0",  "t1",  "t2",
+          "s0", "s1",  "a0",  "a1",
+          "a2", "a3",  "a4",  "a5",
+          "a6", "a7",  "s2",  "s3",
+          "s4", "s5",  "s6",  "s7",
+          "s8", "s9", "s10", "s11",
+          "t3", "t4",  "t5",  "t6",
     };
 
     for (int i=0; i<8; i++) {
-        printf("(%s)x%02d: %#-8.2lx\t", abi[i],    i,    cpu->regs[i]);
-        printf("(%s)x%02d: %#-8.2lx\t", abi[i+8],  i+8,  cpu->regs[i+8]);
-        printf("(%s)x%02d: %#-8.2lx\t", abi[i+16], i+16, cpu->regs[i+16]);
-        printf("(%s)x%02d: %#-8.2lx\n", abi[i+24], i+24, cpu->regs[i+24]);
+        printf("   %4s: %#-13.2lx  ", abi[i],    cpu->regs[i]);
+        printf("   %2s: %#-13.2lx  ", abi[i+8],  cpu->regs[i+8]);
+        printf("   %2s: %#-13.2lx  ", abi[i+16], cpu->regs[i+16]);
+        printf("   %3s: %#-13.2lx\n", abi[i+24], cpu->regs[i+24]);
     }
 }
