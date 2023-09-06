@@ -1,3 +1,6 @@
+#ifndef CSR_H
+#define CSR_H
+
 #include <stdint.h>
 #include "cpu.h"
 
@@ -121,10 +124,7 @@
 #define DSCRATCH0   0x7B2 // DRW Debug scratch register 0.
 #define DSCRATCH1   0x7B3 // DRW Debug scratch register 1.
 
-uint64_t csr_read(CPU* cpu, uint64_t csr) {
-    return (uint64_t)(uint32_t)cpu->csr[csr];
-}
+uint64_t csr_read(CPU* cpu, uint64_t csr);
+void csr_write(CPU* cpu, uint64_t csr, uint64_t value);
 
-void csr_write(CPU* cpu, uint64_t csr, uint64_t value) {
-    cpu->csr[csr] = value;
-}
+#endif
