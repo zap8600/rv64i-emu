@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../includes/cpu.h"
-#include "../includes/opcodes.h"
-#include "../includes/csr.h"
+#include "./includes/cpu.h"
+#include "./includes/opcodes.h"
+#include "./includes/csr.h"
 
 #define ANSI_YELLOW  "\x1b[33m"
 #define ANSI_BLUE    "\x1b[31m"
@@ -544,12 +544,12 @@ void exec_AMOMAXU_D(CPU* cpu, uint32_t inst) {}
 
 void exec_SRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, SEPC);
-    cpu->mode = switch ((csr_read(cpu, SSTATUS) >> 8) & 1) {
+    cpu->mode = switch ((csr_read(cpu, SSTATUS) >> 8)) {
         case 1: Supervisor; break;
         default: User; break;
     } break;
     csr_write = csr_write(cpu, SSTATUS,
-        if (((csr_read(cpu, SSTATUS >> 5)) & 1) == 1) {
+        if (((csr_read(cpu, SSTATUS >> 5))) == 1) {
             csr_read(cpu, SSTATUS) | (1 << 1)
         } else {
             csr_read(cpu, SSTATUS) & !(1 << 1)
@@ -561,13 +561,13 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, MEPC);
-    cpu->mode = switch ((csr_read(cpu, MSTATUS) >> 11) & 0b11) {
+    cpu->mode = switch (csr_read(cpu, MSTATUS) >> 11) {
         case 2: Machine; break;
         case 1: Supervisor; break;
         default: User; break;
     } break;
     csr_write = csr_write(cpu, SSTATUS,
-        if (((csr_read(cpu, SSTATUS >> 7)) & 1) == 1) {
+        if ((csr_read(cpu, SSTATUS >> 7)) == 1) {
             csr_read(cpu, SSTATUS) | (1 << 3)
         } else {
             csr_read(cpu, SSTATUS) & !(1 << 3)
