@@ -304,7 +304,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
 
     cpu->regs[0] = 0;                    // x0 reset to 0 at each cycle
 
-    printf("%s\nPC: %#.8lx Inst: %#.8x <OpCode: %#.2x, funct3:%#x, funct7:%#x>%s\n",
+    FURI_LOG_D(TAG, "%s\nPC: %#.8lx Inst: %#.8x <OpCode: %#.2x, funct3:%#x, funct7:%#x>%s\n",
             ANSI_YELLOW, cpu->pc-4, inst, opcode, funct3, funct7, ANSI_RESET); // DEBUG
 
     switch (opcode) {
@@ -362,7 +362,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case ORI:   exec_ORI(cpu, inst); break;
                 case ANDI:  exec_ANDI(cpu, inst); break;
                 default:
-                    fprintf(stderr, 
+                    FURI_LOG_E 
                             "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct3:0x%x\n"
                             , opcode, funct3, funct7);
                     return 0;
@@ -384,7 +384,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case ORI:   exec_ORI(cpu, inst); break;
                 case ANDI:  exec_ANDI(cpu, inst); break;
                 default:
-                    fprintf(stderr, 
+                    FURI_LOG_E(TAG, 
                             "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct3:0x%x\n"
                             , opcode, funct3, funct7);
                     return 0;
@@ -422,7 +422,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
             } break;
 
         default:
-            fprintf(stderr, 
+            FURI_LOG_E(TAG, 
                     "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct3:0x%x\n"
                     , opcode, funct3, funct7);
             return 0;
@@ -444,9 +444,9 @@ void dump_registers(CPU *cpu) {
     };
 
     for (int i=0; i<8; i++) {
-        printf("(%s)x%02d: %#-8.2lx\t", abi[i],    i,    cpu->regs[i]);
-        printf("(%s)x%02d: %#-8.2lx\t", abi[i+8],  i+8,  cpu->regs[i+8]);
-        printf("(%s)x%02d: %#-8.2lx\t", abi[i+16], i+16, cpu->regs[i+16]);
-        printf("(%s)x%02d: %#-8.2lx\n", abi[i+24], i+24, cpu->regs[i+24]);
+        FURI_LOG_I(TAG, "(%s)x%02d: %#-8.2lx\t", abi[i],    i,    cpu->regs[i]);
+        FURI_LOG_I(TAG, "(%s)x%02d: %#-8.2lx\t", abi[i+8],  i+8,  cpu->regs[i+8]);
+        FURI_LOG_I(TAG, "(%s)x%02d: %#-8.2lx\t", abi[i+16], i+16, cpu->regs[i+16]);
+        FURI_LOG_I(TAG, "(%s)x%02d: %#-8.2lx\n", abi[i+24], i+24, cpu->regs[i+24]);
     }
 }
