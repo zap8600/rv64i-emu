@@ -4,16 +4,18 @@
 #include <stdint.h>
 #include "bus.h"
 
+/*
 typedef enum Mode {
     User = 0b00,
     Supervisor = 0b01,
     Machine = 0b11,
 } Mode;
+*/
 
 typedef struct CPU {
     uint64_t regs[32];
     uint64_t pc;
-    Mode mode;
+    //Mode mode;
     uint64_t csr[4069];
     struct BUS bus;
 } CPU;

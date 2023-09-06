@@ -21,7 +21,7 @@ void cpu_init(CPU *cpu) {
     cpu->regs[0] = 0x00;                    // register x0 hardwired to 0
     cpu->regs[2] = DRAM_BASE + DRAM_SIZE;   // Set stack pointer
     cpu->pc      = DRAM_BASE;               // Set program counter to the base address
-    cpu->mode    = Machine;
+    //cpu->mode    = Machine;
 }
 
 uint32_t cpu_fetch(CPU *cpu) {
@@ -543,6 +543,7 @@ void exec_AMOMAX_D(CPU* cpu, uint32_t inst) {}
 void exec_AMOMINU_D(CPU* cpu, uint32_t inst) {} 
 void exec_AMOMAXU_D(CPU* cpu, uint32_t inst) {} 
 
+/*
 void exec_SRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, SEPC);
     switch (csr_read(cpu, SSTATUS) >> 8) {
@@ -558,6 +559,7 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
 }
+*/
 
 int cpu_execute(CPU *cpu, uint32_t inst) {
     int opcode = inst & 0x7f;           // opcode in bits 6..0
@@ -694,6 +696,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
 
         case CSR:
             switch (funct3) {
+                /*
                 case ECALLBREAK:
                     switch (cpu->regs[rs2(inst)]) {
                         case 0x2:
@@ -702,6 +705,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                                 //case 0x18: exec_MRET(cpu, inst); break;
                             } break;
                     } break;
+                */
                 case CSRRW  :  exec_CSRRW(cpu, inst); break;  
                 case CSRRS  :  exec_CSRRS(cpu, inst); break;  
                 case CSRRC  :  exec_CSRRC(cpu, inst); break;  
