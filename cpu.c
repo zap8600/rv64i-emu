@@ -21,6 +21,7 @@ void cpu_init(CPU *cpu) {
     cpu->regs[0] = 0x00;                    // register x0 hardwired to 0
     cpu->regs[2] = DRAM_BASE + DRAM_SIZE;   // Set stack pointer
     cpu->pc      = DRAM_BASE;               // Set program counter to the base address
+    cpu->mode    = Machine;
 }
 
 uint32_t cpu_fetch(CPU *cpu) {
@@ -547,6 +548,11 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
     switch (csr_read(cpu, SSTATUS) >> 8) {
         case 0: cpu->mode = User; break;
         case 1: cpu->mode = Supervisor; break;
+    }
+    if ((csr_read(cpu, SSTATUS) >> 5) == 1) {
+        csr_write(cpu, csr_read(cpu, SSTATUS) | (1 << 1));
+    } else {
+        csr_write(cpu, csr_read(cpu, SSTATUS) & !(1 << 1));
     }
 }
 
