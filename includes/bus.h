@@ -2,6 +2,8 @@
 
 #include "dram.h"
 
+#pragma once
+
 typedef struct BUS {
     struct DRAM dram;
 } BUS;
