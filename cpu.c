@@ -542,6 +542,21 @@ void exec_AMOMAX_D(CPU* cpu, uint32_t inst) {}
 void exec_AMOMINU_D(CPU* cpu, uint32_t inst) {} 
 void exec_AMOMAXU_D(CPU* cpu, uint32_t inst) {} 
 
+void exec_SRET(CPU* cpu, uint32_t inst) {
+    cpu->pc = csr_read(cpu, SEPC);
+    cpu->mode = switch ((csr_read(cpu, SSTATUS) >> 8) & 1) {
+        case 1: Supervisor; break;
+        default: User; break;
+    } break;
+    csr_write = csr_write(cpu, SSTATUS,
+        if (((csr_read(cpu, SSTATUS >> 5)) & 1) == 1) {
+            csr_read(cpu, SSTATUS) | (1 << 1)
+        } else {
+            csr_read(cpu, SSTATUS) & !(1 << 1)
+        }
+    )
+}
+
 int cpu_execute(CPU *cpu, uint32_t inst) {
     int opcode = inst & 0x7f;           // opcode in bits 6..0
     int funct3 = (inst >> 12) & 0x7;    // funct3 in bits 14..12
@@ -677,7 +692,14 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
 
         case CSR:
             switch (funct3) {
-                case ECALLBREAK:    exec_ECALLBREAK(cpu, inst); break;
+                case ECALLBREAK:
+                    switch (cpu->regs[rs2(inst)]) {
+                        case 0x2:
+                            switch (funct7) {
+                                case 0x8: exec_SRET(cpu, inst); break;
+                                case 0x18: exec_MRET(cpu, inst); break;
+                            } break;
+                    } break;
                 case CSRRW  :  exec_CSRRW(cpu, inst); break;  
                 case CSRRS  :  exec_CSRRS(cpu, inst); break;  
                 case CSRRC  :  exec_CSRRC(cpu, inst); break;  
