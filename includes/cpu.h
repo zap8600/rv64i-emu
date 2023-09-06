@@ -7,6 +7,7 @@
 typedef struct CPU {
     uint64_t regs[32];
     uint64_t pc;
+    uint64_t csr[4069];
     struct BUS bus;
 } CPU;
 
