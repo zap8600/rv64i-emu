@@ -547,7 +547,7 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
     switch (csr_read(cpu, SSTATUS) >> 8) {
         case 0: User; break;
         case 1: Supervisor; break;
-    }
+    } break;
 }
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
