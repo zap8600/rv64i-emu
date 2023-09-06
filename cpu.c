@@ -554,7 +554,27 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
         } else {
             csr_read(cpu, SSTATUS) & !(1 << 1)
         }
-    )
+    );
+    csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 5));
+    csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) & !(1 << 8));
+}
+
+void exec_MRET(CPU* cpu, uint32_t inst) {
+    cpu->pc = csr_read(cpu, MEPC);
+    cpu->mode = switch ((csr_read(cpu, MSTATUS) >> 11) & 0b11) {
+        case 2: Machine; break;
+        case 1: Supervisor; break;
+        default: User; break;
+    } break;
+    csr_write = csr_write(cpu, SSTATUS,
+        if (((csr_read(cpu, SSTATUS >> 7)) & 1) == 1) {
+            csr_read(cpu, SSTATUS) | (1 << 3)
+        } else {
+            csr_read(cpu, SSTATUS) & !(1 << 3)
+        }
+    );
+    csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 7));
+    csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) & !(0b11 << 11));
 }
 
 int cpu_execute(CPU *cpu, uint32_t inst) {
