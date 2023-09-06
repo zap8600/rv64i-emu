@@ -547,7 +547,7 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
     switch (csr_read(cpu, SSTATUS) >> 8) {
         case 0: cpu->mode = User; break;
         case 1: cpu->mode = Supervisor; break;
-    } break;
+    }
 }
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
@@ -756,7 +756,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                         "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
                         , opcode, funct3, funct7);
                 return 0;
-        } break;
+        }
         
         /*
         case 0x00:
