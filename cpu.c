@@ -544,7 +544,7 @@ void exec_AMOMAXU_D(CPU* cpu, uint32_t inst) {}
 
 void exec_SRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, SEPC);
-    switch (csr_read(cpu, SSTATUS) >> 8) {
+    cpu->mode = switch (csr_read(cpu, SSTATUS) >> 8) {
         case 0: User; break;
         case 1: Supervisor; break;
     } break;
