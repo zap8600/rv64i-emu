@@ -3,6 +3,9 @@
 #include "bus.h"
 #include "opcodes.h"
 
+#define ANSI_YELLOW   "\x1b[33m"
+#define ANSI_RESET   "\x1b[0m"
+
 typedef struct CPU {
     uint64_t regs[32];
     uint64_t pc;
@@ -11,7 +14,7 @@ typedef struct CPU {
 
 void cpu_init(CPU *cpu) {
     cpu->regs[0] = 0x00;           // register x0 hardwired to 0
-    cpu->regs[2] = DRAM_SIZE;   // Set stack pointer
+    cpu->regs[2] = DRAM_BASE + DRAM_SIZE;   // Set stack pointer
     cpu->pc = DRAM_BASE;        // Set program counter to the base address
 }
 
@@ -253,16 +256,13 @@ void exec_ADDIW(CPU* cpu, uint32_t inst) {
 // TODO
 void exec_SLLIW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] <<  shamt(inst));
-    print_op("slliw\n");
 }
 void exec_SRLIW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] >>  shamt(inst));
-    print_op("srliw\n");
 }
 void exec_SRAIW(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_I(inst);
     cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] >> (uint64_t)(int64_t)(int32_t) imm);
-    print_op("sraiw\n");
 }
 void exec_ADDW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] 
@@ -296,8 +296,6 @@ void exec_REMW(CPU* cpu, uint32_t inst) {
 void exec_REMUW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] % (int64_t) cpu->regs[rs2(inst)];
 }
-
-
 
 int cpu_execute(CPU *cpu, uint32_t inst) {
     int opcode = inst & 0x7f;           // opcode in bits 6..0
