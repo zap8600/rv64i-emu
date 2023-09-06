@@ -757,7 +757,8 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                             , opcode, funct3, funct7);
                     return 0;
             } break;
-
+        
+        /*
         case 0x00:
             return 0;
 
@@ -766,6 +767,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct3:0x%x\n"
                     , opcode, funct3, funct7);
             return 0;
+        */
             /*exit(1);*/
     }
     return 1;
