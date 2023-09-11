@@ -810,14 +810,32 @@ void take_trap(CPU* cpu) {
     Mode prev_mode = cpu->mode;
     if ((prev_mode <= Supervisor) && (csr_read(cpu, MEDELEG) >> (uint32_t)cpu->trap) != 0) {
         cpu->mode = Supervisor;
-        cpu->pc = csr_read(csr, STVEC);
-        csr_write(cpu, SEPC, exec_pc);
+        cpu->pc = csr_read(csr, STVEC) & !1;
+        csr_write(cpu, SEPC, exec_pc & !1);
         csr_write(cpu, SCAUSE, cpu->trap);
         csr_write(cpu, STVAL, 0);
-        if ((csr_read(cpu, SSTATUS) >> 1) == 1) {
+        if (((csr_read(cpu, SSTATUS) & 1) >> 1) == 1) {
             csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 5));
         } else {
-            csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS));
+            csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) & !(1 << 5));
         }
+        csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) & !(1 << 1));
+        switch (prev_mode) {
+            case User: csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) & !(1 << 8)); break;
+            default: case User: csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 8)); break;
+        }
+    } else {
+        cpu->mode = Machine;
+        cpu->pc = csr_read(csr, MTVEC);
+        csr_write(cpu, MEPC, exec_pc);
+        csr_write(cpu, MCAUSE, cpu->trap);
+        csr_write(cpu, MTVAL, 0);
+        if (((csr_read(cpu, MSTATUS) & 1) >> 3) == 1) {
+            csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 7));
+        } else {
+            csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) & !(1 << 7));
+        }
+        csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) & !(1 << 3));
+        csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) & !(0b11 << 11));
     }
 }
