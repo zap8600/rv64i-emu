@@ -804,3 +804,20 @@ void dump_registers(CPU *cpu) {
         printf("   %3s: %#-13.2lx\n", abi[i+24], cpu->regs[i+24]);
     }
 }
+
+void take_trap(CPU* cpu) {
+    uint64_t exec_pc = cpu->pc - 4;
+    Mode prev_mode = cpu->mode;
+    if ((prev_mode <= Supervisor) && (csr_read(cpu, MEDELEG) >> (uint32_t)cpu->trap) != 0) {
+        cpu->mode = Supervisor;
+        cpu->pc = csr_read(csr, STVEC);
+        csr_write(cpu, SEPC, exec_pc);
+        csr_write(cpu, SCAUSE, cpu->trap);
+        csr_write(cpu, STVAL, 0);
+        if ((csr_read(cpu, SSTATUS) >> 1) == 1) {
+            csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 5));
+        } else {
+            csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS));
+        }
+    }
+}

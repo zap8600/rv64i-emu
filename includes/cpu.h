@@ -10,12 +10,30 @@ typedef enum Mode {
     Machine = 0b11,
 } Mode;
 
+typedef enum Exception {
+    InstructionAddressMisaligned = 0,
+    InstructionAccessFault = 1,
+    IllegalInstruction = 2,
+    Breakpoint = 3,
+    LoadAddressMisaligned = 4,
+    LoadAccessFault = 5,
+    StoreAMOAddressMisaligned = 6,
+    StoreAMOAccessFault = 7,
+    EnvironmentCallFromUMode = 8,
+    EnvironmentCallFromSMode = 9,
+    EnvironmentCallFromMMode = 11,
+    InstructionPageFault = 12,
+    LoadPageFault = 13,
+    StoreAMOPageFault = 15,
+} Exception;
+
 typedef struct CPU {
     uint64_t regs[32];
     uint64_t pc;
     Mode mode;
     uint64_t csr[4069];
     struct BUS bus;
+    Exception trap;
 } CPU;
 
 void cpu_init(struct CPU *cpu);
