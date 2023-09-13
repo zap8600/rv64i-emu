@@ -5,6 +5,7 @@
 
 #define DRAM_SIZE 1024*1024*1
 #define DRAM_BASE 0x80000000
+#define DRAM_END (DRAM_BASE + DRAM_SIZE)
 
 typedef struct DRAM {
 	uint8_t mem[DRAM_SIZE];     // Dram memory of DRAM_SIZE
