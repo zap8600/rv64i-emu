@@ -1,6 +1,13 @@
 #include "./includes/dram.h"
 #include <stdio.h>
 
+uint8_t in_memory(uint32_t addr)
+{
+	if (addr >= DRAM_BASE && addr <= DRAM_END)
+		return 1;
+	return 0;
+}
+
 uint64_t dram_load_8(DRAM* dram, uint64_t addr){
     return (uint64_t) dram->mem[addr - DRAM_BASE];
 }
@@ -61,7 +68,22 @@ void dram_store_64(DRAM* dram, uint64_t addr, uint64_t value) {
     dram->mem[addr-DRAM_BASE + 7] = (uint8_t) ((value >> 56) & 0xff);
 }
 
+void mmio_store(uint64_t addr, uint64_t value) {
+    if(addr == 0x11100000) {
+        if (value == 0x5555) {
+            printf("SYSCON POWEROFF");
+        } else if (value == 0x7777) {
+            printf("SYSCON REBOOT");
+        }
+    } else if (addr == 0x10000000) {
+        printf("%c", value);
+    }
+}
+
 void dram_store(DRAM* dram, uint64_t addr, uint64_t size, uint64_t value) {
+    if (!inMemory(addr)) {
+        mmio_store(addr, value);
+    }
     switch (size) {
         case 8:  dram_store_8(dram, addr, value);  break;
         case 16: dram_store_16(dram, addr, value); break;
