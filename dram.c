@@ -82,7 +82,7 @@ void mmio_store(uint64_t addr, uint64_t value) {
 }
 
 void dram_store(DRAM* dram, uint64_t addr, uint64_t size, uint64_t value) {
-    if (!inMemory(addr)) {
+    if (!in_memory(addr)) {
         mmio_store(addr, value);
     }
     switch (size) {
