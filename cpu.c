@@ -819,7 +819,7 @@ void take_trap(CPU* cpu) {
         csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) & !(1 << 1));
         switch (prev_mode) {
             case User: csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) & !(1 << 8)); break;
-            default: case User: csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 8)); break;
+            default: csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 8)); break;
         }
     } else {
         cpu->mode = Machine;
