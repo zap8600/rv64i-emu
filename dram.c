@@ -76,7 +76,8 @@ void mmio_store(uint64_t addr, uint64_t value) {
             printf("SYSCON REBOOT");
         }
     } else if (addr == 0x10000000) {
-        printf("%c", value);
+        //printf("%c", value);
+        printf("UART call");
     }
 }
 
