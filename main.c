@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include "./includes/cpu.h"
-#include "csr.h"
+#include "illegal.h"
 
 void copy_bin(CPU* cpu) {
-    memcpy(cpu->bus.dram.mem, csr_bin, csr_bin_len*sizeof(uint8_t));
+    memcpy(cpu->bus.dram.mem, illegal_bin, illegal_bin_len*sizeof(uint8_t));
 }
 
 int main() {
@@ -18,7 +18,7 @@ int main() {
         cpu.pc += 4;
         // execute
         if (!cpu_execute(&cpu, inst))
-            break;
+            take_trap(&cpu);
 
         if(cpu.pc==0)
             break;
