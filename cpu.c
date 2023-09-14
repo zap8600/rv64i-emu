@@ -697,6 +697,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
 
         case CSR:
             switch (funct3) {
+                /*
                 case ECALLBREAK:
                     switch (cpu->regs[rs2(inst)]) {
                         case 0x2:
@@ -705,6 +706,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                                 //case 0x18: exec_MRET(cpu, inst); break;
                             } break;
                     } break;
+                */
                 case CSRRW  :  exec_CSRRW(cpu, inst); break;  
                 case CSRRS  :  exec_CSRRS(cpu, inst); break;  
                 case CSRRC  :  exec_CSRRC(cpu, inst); break;  
@@ -770,15 +772,6 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 cpu->trap = IllegalInstruction;
                 return 0;
         }
-        case 0x00:
-            return 0;
-
-        default:
-            fprintf(stderr, 
-                    "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct3:0x%x\n"
-                    , opcode, funct3, funct7);
-            cpu->trap = IllegalInstruction;
-            return 0;
     return 1;
 }
 
@@ -814,7 +807,7 @@ void take_trap(CPU* cpu) {
     Mode prev_mode = cpu->mode;
     if ((prev_mode <= Supervisor) && (csr_read(cpu, MEDELEG) >> (uint32_t)cpu->trap) != 0) {
         cpu->mode = Supervisor;
-        cpu->pc = csr_read(csr, STVEC) & !1;
+        cpu->pc = csr_read(cpu, STVEC) & !1;
         csr_write(cpu, SEPC, exec_pc & !1);
         csr_write(cpu, SCAUSE, cpu->trap);
         csr_write(cpu, STVAL, 0);
@@ -830,7 +823,7 @@ void take_trap(CPU* cpu) {
         }
     } else {
         cpu->mode = Machine;
-        cpu->pc = csr_read(csr, MTVEC);
+        cpu->pc = csr_read(cpu, MTVEC);
         csr_write(cpu, MEPC, exec_pc);
         csr_write(cpu, MCAUSE, cpu->trap);
         csr_write(cpu, MTVAL, 0);
