@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include "./includes/cpu.h"
-#include "illegal.h"
+#include "invalid.h"
 
 void copy_bin(CPU* cpu) {
-    memcpy(cpu->bus.dram.mem, illegal_bin, illegal_bin_len*sizeof(uint8_t));
+    memcpy(cpu->bus.dram.mem, invalid_bin, invalid_bin_len*sizeof(uint8_t));
 }
 
 int main() {
