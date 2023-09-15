@@ -557,6 +557,16 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
 }
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
+    cpu->pc = csr_read(cpu, MEPC);
+    switch ((csr_read(cpu, MSTATUS) & 3) >> 1) {
+        case 2: cpu->mode = Machine;
+        case 1: cpu->mode = Supervisor;
+        default: cpu->mode = User;
+    }
+    csr_write(cpu, MSTATUS)
+    if (((csr_read(cpu, MSTATUS) & 1) >> 7) == 1) {
+
+    }
 }
 
 int cpu_execute(CPU *cpu, uint32_t inst) {
@@ -830,9 +840,9 @@ void take_trap(CPU* cpu) {
         if (((csr_read(cpu, MSTATUS) & 1) >> 3) == 1) {
             csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 7));
         } else {
-            csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) & !(1 << 7));
+            csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 7);
         }
-        csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) & !(1 << 3));
-        csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) & !(0b11 << 11));
+        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 3);
+        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 3) << 11);
     }
 }
