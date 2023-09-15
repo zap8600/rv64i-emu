@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include "./includes/cpu.h"
-#include "csr.h"
+#include "invalid.h"
 
 void copy_bin(CPU* cpu) {
-    memcpy(cpu->bus.dram.mem, csr_bin, csr_bin_len*sizeof(uint8_t));
+    memcpy(cpu->bus.dram.mem, invalid_bin, invalid_bin_len*sizeof(uint8_t));
 }
 
 int main() {
@@ -18,11 +18,13 @@ int main() {
         cpu.pc += 4;
         // execute
         if (!cpu_execute(&cpu, inst))
-            break;
+            take_trap(&cpu);
 
         if(cpu.pc==0)
             break;
     }
     dump_registers(&cpu);
+    printf("\n");
+    dump_csr(&cpu);
     return 0;
 }
