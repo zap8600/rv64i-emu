@@ -24,5 +24,7 @@ int main() {
             break;
     }
     dump_registers(&cpu);
+    printf("\n");
+    dump_csr(&cpu);
     return 0;
 }

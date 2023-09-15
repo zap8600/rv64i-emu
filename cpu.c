@@ -11,7 +11,6 @@
 
 #define ADDR_MISALIGNED(addr) (addr & 0x3)
 
-
 // print operation for DEBUG
 void print_op(char* s) {
     printf("%s%s%s", ANSI_BLUE, s, ANSI_RESET);
@@ -815,6 +814,13 @@ void dump_registers(CPU *cpu) {
         printf("   %2s: %#-13.2lx  ", abi[i+16], cpu->regs[i+16]);
         printf("   %3s: %#-13.2lx\n", abi[i+24], cpu->regs[i+24]);
     }
+}
+
+void dump_csr(CPU* cpu) {
+    printf("   mstatus: %#-13.2lx  ", csr_read(cpu, MSTATUS));
+    printf("   mtvec: %#-13.2lx  ", csr_read(cpu, MTVEC));
+    printf("   mepc: %#-13.2lx  ", csr_read(cpu, MEPC));
+    printf("   mcause: %#-13.2lx  ", csr_read(cpu, MCAUSE));
 }
 
 void take_trap(CPU* cpu) {

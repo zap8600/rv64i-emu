@@ -40,6 +40,7 @@ void cpu_init(struct CPU *cpu);
 uint32_t cpu_fetch(struct CPU *cpu);
 int cpu_execute(struct CPU *cpu, uint32_t inst);
 void dump_registers(struct CPU *cpu);
+void dump_csr(struct CPU *cpu);
 void take_trap(CPU* cpu);
 
 #endif
