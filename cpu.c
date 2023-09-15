@@ -829,11 +829,11 @@ void take_trap(CPU* cpu) {
         if (((csr_read(cpu, SSTATUS) & 1) >> 1) == 1) {
             csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 5));
         } else {
-            csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 5));
+            csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 5);
         }
-        csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 1));
+        csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 1);
         switch (prev_mode) {
-            case User: csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 8)); break;
+            case User: csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 8); break;
             default: csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 8)); break;
         }
     } else {
