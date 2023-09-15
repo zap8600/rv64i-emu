@@ -546,27 +546,32 @@ void exec_AMOMAXU_D(CPU* cpu, uint32_t inst) {}
 void exec_SRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, SEPC);
     switch (csr_read(cpu, SSTATUS) >> 8) {
-        case 0: cpu->mode = User; break;
         case 1: cpu->mode = Supervisor; break;
+        default: cpu->mode = User; break;
     }
-    if ((csr_read(cpu, SSTATUS) >> 5) == 1) {
+    if (((csr_read(cpu, SSTATUS) & 1) >> 5) == 1) {
         csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 1));
     } else {
-        csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS));
+        csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 1);
     }
+    csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 7));
+    csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 8);
 }
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, MEPC);
     switch ((csr_read(cpu, MSTATUS) & 3) >> 1) {
-        case 2: cpu->mode = Machine;
-        case 1: cpu->mode = Supervisor;
-        default: cpu->mode = User;
+        case 2: cpu->mode = Machine; break;
+        case 1: cpu->mode = Supervisor; break;
+        default: cpu->mode = User; break;
     }
-    csr_write(cpu, MSTATUS)
     if (((csr_read(cpu, MSTATUS) & 1) >> 7) == 1) {
-
+        csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 3));
+    } else {
+        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 3);
     }
+    csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 5));
+    csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 3) << 11);
 }
 
 int cpu_execute(CPU *cpu, uint32_t inst) {
