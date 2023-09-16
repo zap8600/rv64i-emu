@@ -5,6 +5,11 @@
 #define CLINT_MTIMECMP (CLINT_BASE + 0x4000)
 #define CLINT_MTIME (CLINT_BASE + 0xbff8)
 
+void clint_init(CLINT* clint) {
+    clint->mtime = 0;
+    clint->mtimecmp = 0;
+}
+
 uint64_t clint_load_64(CLINT* clint, uint64_t addr) {
     switch(addr) {
         case CLINT_MTIMECMP: return clint->mtimecmp; break;
@@ -26,7 +31,7 @@ void clint_store_64(CLINT* clint, uint64_t addr, uint64_t value) {
     switch (addr) {
         case CLINT_MTIMECMP: clint->mtimecmp = value; break;
         case CLINT_MTIME: clint->mtime = value; break;
-        default: break;
+        default: ;
     }
 }
 

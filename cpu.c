@@ -21,6 +21,7 @@ void cpu_init(CPU *cpu) {
     cpu->regs[2] = DRAM_BASE + DRAM_SIZE;   // Set stack pointer
     cpu->pc      = DRAM_BASE;               // Set program counter to the base address
     cpu->mode    = Machine;
+    bus_init(&(cpu->bus));
 }
 
 uint32_t cpu_fetch(CPU *cpu) {
