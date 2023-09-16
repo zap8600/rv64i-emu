@@ -5,12 +5,10 @@
 #define UART_SIZE 0x100
 
 typedef struct UART {
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
     uint8_t data[UART_SIZE];
-    bool interrupting;
 } UART;
 
-void uart_init(UART* uart);
+uint64_t uart_load(UART* uart, uint64_t addr, uint64_t size);
+void uart_store(UART* uart, uint64_t addr, uint64_t size, uint64_t value);
 
 #endif

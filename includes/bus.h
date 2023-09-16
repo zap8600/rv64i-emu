@@ -4,10 +4,12 @@
 #include "dram.h"
 #include "plic.h"
 #include "clint.h"
+#include "uart.h"
 
 typedef struct BUS {
     struct CLINT clint;
     struct PLIC plic;
+    struct UART uart;
     struct DRAM dram;
 } BUS;
 

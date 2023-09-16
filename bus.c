@@ -12,6 +12,9 @@ uint64_t bus_load(BUS* bus, uint64_t addr, uint64_t size) {
     if (PLIC_BASE <= addr && addr < (PLIC_BASE + PLIC_SIZE)) {
         return plic_load(&(bus->plic), addr, size);
     }
+    if (UART_BASE <= addr && addr < (UART_BASE + UART_SIZE)) {
+        return uart_load(&(bus->uart), addr, size);
+    }
     if (DRAM_BASE <= addr) {
         return dram_load(&(bus->dram), addr, size);
     }
@@ -23,6 +26,9 @@ void bus_store(BUS* bus, uint64_t addr, uint64_t size, uint64_t value) {
     }
     if (PLIC_BASE <= addr && addr < (PLIC_BASE + PLIC_SIZE)) {
         plic_store(&(bus->plic), addr, size, value);
+    }
+    if (UART_BASE <= addr && addr < (UART_BASE + UART_SIZE)) {
+        uart_store(&(bus->uart), addr, size, value);
     }
     if (DRAM_BASE <= addr) {
         dram_store(&(bus->dram), addr, size, value);
