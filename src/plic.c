@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "./includes/plic.h"
+#include "../includes/plic.h"
 
 #define PLIC_PENDING (PLIC_BASE + 0x1000)
 #define PLIC_SENABLE (PLIC_BASE + 0X2000)

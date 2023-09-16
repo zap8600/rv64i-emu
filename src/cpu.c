@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "./includes/cpu.h"
-#include "./includes/opcodes.h"
-#include "./includes/csr.h"
+#include "../includes/cpu.h"
+#include "../includes/opcodes.h"
+#include "../includes/csr.h"
 
 #define ANSI_YELLOW  "\x1b[33m"
 #define ANSI_BLUE    "\x1b[31m"

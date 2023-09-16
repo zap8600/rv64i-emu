@@ -1,4 +1,4 @@
-#include "./includes/csr.h"
+#include "../includes/csr.h"
 #include <stdint.h>
 
 uint64_t csr_read(CPU* cpu, uint64_t csr) {

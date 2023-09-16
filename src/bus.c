@@ -1,4 +1,4 @@
-#include "./includes/bus.h"
+#include "../includes/bus.h"
 
 void bus_init(BUS* bus) {
     plic_init(&(bus->plic));

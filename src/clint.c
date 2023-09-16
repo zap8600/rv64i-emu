@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
-#include "./includes/clint.h"
+#include "../includes/clint.h"
 
 #define CLINT_MTIMECMP (CLINT_BASE + 0x4000)
 #define CLINT_MTIME (CLINT_BASE + 0xbff8)
