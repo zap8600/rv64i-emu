@@ -1,6 +1,9 @@
 #ifndef UART_H
 #define UART_H
 
+#include <stdbool.h>
+#include <pthread.h>
+
 #define UART_BASE 0x10000000
 #define UART_SIZE 0x100
 
