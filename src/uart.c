@@ -14,7 +14,8 @@
 
 void uart_in(UART* uart) {
     pthread_mutex_lock(&(uart->mutex));
-    if ((uint8_t c = fgetc(stdin)) != EOF) {
+    uint8_t c;
+    if ((c = fgetc(stdin)) != EOF) {
         while ((uart->data[UART_LSR - UART_BASE] & UART_LSR_RX) == 1) {
             pthread_cond_wait(&(uart->cond), &(uart->mutex));
         }
