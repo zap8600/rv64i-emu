@@ -15,12 +15,12 @@
 void *uart_in(void *ptr) {
     UART* uart = (UART*)ptr;
     pthread_mutex_lock(&(uart->mutex));
-    uint8_t c;
+    int c;
     if ((c = fgetc(stdin)) != EOF) {
         while ((uart->data[UART_LSR - UART_BASE] & UART_LSR_RX) == 1) {
             pthread_cond_wait(&(uart->cond), &(uart->mutex));
         }
-        uart->data[0] = c;
+        uart->data[0] = (uint8_t)c;
         uart->interrupting = true;
         uart->data[UART_LSR - UART_BASE] |= UART_LSR_RX;
     }
