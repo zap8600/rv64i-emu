@@ -8,7 +8,6 @@ typedef struct UART {
     uint8_t data[UART_SIZE];
 } UART;
 
-void uart_in(UART* uart);
 uint64_t uart_load(UART* uart, uint64_t addr, uint64_t size);
 void uart_store(UART* uart, uint64_t addr, uint64_t size, uint64_t value);
 

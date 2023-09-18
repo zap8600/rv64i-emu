@@ -585,8 +585,6 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
             /*ANSI_YELLOW, cpu->pc-4, inst, opcode, funct3, funct7, ANSI_RESET); // DEBUG*/
     //printf("%s\n%#.8lx -> %s", ANSI_YELLOW, cpu->pc-4, ANSI_RESET); // DEBUG
 
-    uart_in(&(cpu->bus.uart));
-
     switch (opcode) {
         case LUI:   exec_LUI(cpu, inst); break;
         case AUIPC: exec_AUIPC(cpu, inst); break;
