@@ -13,7 +13,7 @@
 
 void uart_in(UART* uart) {
     int c;
-    if (c = fgetc(stdin) != EOF) {
+    if ((c = fgetc(stdin)) != EOF) {
         while ((uart->data[UART_LSR - UART_BASE] & UART_LSR_RX) == 1) {}
         uart->data[0] = c;
         uart->data[UART_LSR - UART_BASE] |= UART_LSR_RX;
