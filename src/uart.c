@@ -11,6 +11,15 @@
 #define UART_LSR_RX 1
 #define UART_LSR_TX (1 << 5)
 
+void uart_in(UART* uart) {
+    int c;
+    if (c = fgetc(stdin) != EOF) {
+        while ((uart->data[UART_LSR - UART_BASE] & UART_LSR_RX) == 1) {}
+        uart->data[0] = c;
+        uart->data[UART_LSR - UART_BASE] |= UART_LSR_RX;
+    }
+}
+
 uint64_t uart_load_8(UART* uart, uint64_t addr) {
     switch (addr) {
         case UART_RHR: 
