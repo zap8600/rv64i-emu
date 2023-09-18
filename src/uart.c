@@ -32,7 +32,7 @@ uint64_t uart_load(UART* uart, uint64_t addr, uint64_t size) {
 void uart_store_8(UART* uart, uint64_t addr, uint64_t value) {
     /**/
     switch (addr) {
-        case UART_THR: printf("%c", (char *)value); break;
+        case UART_THR: printf("%c", (uint8_t)value); break;
         default: uart->data[addr - UART_BASE] = (uint8_t)value; break;
     }
 }
