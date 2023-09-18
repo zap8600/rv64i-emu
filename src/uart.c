@@ -12,7 +12,8 @@
 #define UART_LSR_RX 1
 #define UART_LSR_TX (1 << 5)
 
-void uart_in(UART* uart) {
+void uart_in(void *ptr) {
+    UART* uart = (UART*)ptr;
     pthread_mutex_lock(&(uart->mutex));
     uint8_t c;
     if ((c = fgetc(stdin)) != EOF) {
