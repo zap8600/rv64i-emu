@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
-#include <pthread.h>
+#include <unistd.h>
 #include "../includes/uart.h"
 
 #define UART_RHR (UART_BASE + 0)
