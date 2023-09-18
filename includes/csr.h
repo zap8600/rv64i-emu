@@ -81,6 +81,13 @@
 #define MTVAL       0x343 // MRW Machine bad address or instruction.
 #define MIP         0x344 // MRW Machine interrupt pending.
 
+#define MIP_SSIP (1 << 1)
+#define MIP_MSIP (1 << 3)
+#define MIP_STIP (1 << 5)
+#define MIP_MTIP (1 << 7)
+#define MIP_SEIP (1 << 9)
+#define MIP_MEIP (1 << 11)
+
 //Machine Memory Protection
 #define PMPCFG0     0x3A0 // MRW Physical memory protection configuration.
 #define PMPCFG1     0x3A1 // MRW Physical memory protection configuration, RV32 only.
