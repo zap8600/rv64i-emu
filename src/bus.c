@@ -3,6 +3,7 @@
 void bus_init(BUS* bus) {
     plic_init(&(bus->plic));
     clint_init(&(bus->clint));
+    uart_init(&(bus->uart));
 }
 
 uint64_t bus_load(BUS* bus, uint64_t addr, uint64_t size) {

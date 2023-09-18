@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <pthread.h>
 #include "../includes/uart.h"
 
 #define UART_RHR (UART_BASE + 0)
@@ -10,6 +11,25 @@
 
 #define UART_LSR_RX 1
 #define UART_LSR_TX (1 << 5)
+
+void uart_in(UART* uart) {
+    pthread_mutex_lock(&(uart->mutex));
+    uint8_t buff[1];
+    if (read(stdin, buff, 1) != -1) {
+        while ((uart->data[UART_LSR - UART_BASE] & UART_LSR_RX) == 1) {
+            pthread_cond_wait(&(uart->cond), &(uart->mutex));
+        }
+        uart->data[0] = buff[0];
+        uart->interrupting = true;
+        uart->data[UART_LSR - UART_BASE] |= UART_LSR_RX;
+    }
+    uart->interrupting = false;
+    pthread_mutex_unlock(&(uart->mutex));
+}
+
+void uart_init(UART* uart) {
+    pthread_create(&(uart->rx_thread), NULL, &uart_in, uart);
+}
 
 uint64_t uart_load_8(UART* uart, uint64_t addr) {
     switch (addr) {
