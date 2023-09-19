@@ -5,12 +5,14 @@
 #include "plic.h"
 #include "clint.h"
 #include "uart.h"
+#include "virtio.h"
 
 typedef struct BUS {
     struct CLINT clint;
     struct PLIC plic;
     struct UART uart;
     struct DRAM dram;
+    struct VIRTIO virtio;
 } BUS;
 
 void bus_init(BUS* bus);

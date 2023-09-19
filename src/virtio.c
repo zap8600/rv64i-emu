@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "../includes/virtio.h"
 #include "../includes/cpu.h"
+#include "../includes/bus.h"
 
 virtio_init(VIRTIO* virtio) {
     virtio->id = 0;
@@ -71,7 +72,7 @@ uint64_t get_new_id(VIRTIO* virtio) {
     return virtio->id;
 }
 
-uint64_t desc_addr(VIRTIO* virtio) {
+uint64_t virtio_desc_addr(VIRTIO* virtio) {
     return (uint64_t)virtio->queue_pfn * (uint64_t)virtio->page_size;
 }
 
@@ -83,4 +84,11 @@ void write_disk(VIRTIO* virtio, uint64_t addr, uint64_t value) {
     virtio->disk[addr] = (uint8_t)value;
 }
 
+void virtio_disk_access(CPU* cpu) {
+    uint64_t desc_addr = virtio_desc_addr(&(cpu->bus.virtio));
+    uint64_t avail_addr = virtio_desc_addr(&(cpu->bus.virtio)) + 0x40;
+    uint64_t used_addr = virtio_desc_addr(&(cpu->bus.virtio)) + 4096;
 
+    uint64_t offset = bus_load(&(cpu->bus), avail_addr + 1, 16);
+    uint64_t index = bus_load(&(cpu->bus), avail_addr + (offset % DESC_NUM) + 2, 16)
+}

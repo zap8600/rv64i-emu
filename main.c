@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "./includes/cpu.h"
 
-void read_file(CPU* cpu, char *filename)
+void read_bin(CPU* cpu, char *filename)
 {
     FILE *file;
     uint8_t *buffer;
@@ -39,15 +39,53 @@ void read_file(CPU* cpu, char *filename)
     free(buffer);
 }
 
+void read_disk(CPU* cpu, char *filename)
+{
+    FILE *file;
+    uint8_t *buffer;
+    unsigned long fileLen;
+
+    file = fopen(filename, "rb");
+    if (!file)
+    {
+        fprintf(stderr, "Unable to open file %s", filename);
+    }
+
+    fseek(file, 0, SEEK_END);
+    fileLen=ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    buffer=(uint8_t *)malloc(fileLen+1);
+    if (!buffer)
+    {
+        fprintf(stderr, "Memory error!");
+        fclose(file);
+    }
+
+    fread(buffer, fileLen, 1, file);
+    fclose(file);
+
+    // Print file contents in hex
+    /*for (int i=0; i<fileLen; i+=2) {*/
+        /*if (i%16==0) printf("\n%.8x: ", i);*/
+        /*printf("%02x%02x ", *(buffer+i), *(buffer+i+1));*/
+    /*}*/
+    /*printf("\n");*/
+
+    memcpy(cpu->bus.virtio.disk, buffer, fileLen*sizeof(uint8_t));
+    free(buffer);
+}
+
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s <filename>\n", argv[0]);
+    if (argc != 3) {
+        printf("Usage: %s <filename> <disk>\n", argv[0]);
         return 1;
     }
 
     struct CPU cpu;
     cpu_init(&cpu);
     read_file(&cpu, argv[1]);
+    read_disk(&cpu, argv[2]);
 
     while (1) {
         // fetch
