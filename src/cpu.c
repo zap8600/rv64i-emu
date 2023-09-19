@@ -896,7 +896,7 @@ void take_trap(CPU* cpu, bool interrupting) {
     Mode prev_mode = cpu->mode;
 
     if (interrupting) {
-        cpu->trap = (1 << 63) | cpu->trap;
+        cpu->trap = (1ULL << 63) | cpu->trap;
     }
 
     if ((prev_mode <= Supervisor) && (csr_read(cpu, MEDELEG) >> (uint32_t)cpu->trap) != 0) {
