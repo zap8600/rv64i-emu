@@ -847,7 +847,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                         case SUB: exec_ADD(cpu, inst);
                         default:
                             fprintf(stderr, 
-                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                "R-TYPE [-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
                                 , opcode, funct3, funct7);
                             cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
                             return 0;
