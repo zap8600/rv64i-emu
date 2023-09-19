@@ -505,8 +505,16 @@ void exec_FENCE(CPU* cpu, uint32_t inst) {
     //print_op("fence\n");
 }
 
-void exec_ECALL(CPU* cpu, uint32_t inst) {}
-void exec_EBREAK(CPU* cpu, uint32_t inst) {}
+void exec_ECALL(CPU* cpu, uint32_t inst) {
+    switch(cpu->mode) {
+        case User: cpu->trap = EnvironmentCallFromUMode;
+        case Supervisor: cpu->trap = EnvironmentCallFromSMode;
+        case Machine: cpu->trap = EnvironmentCallFromMMode;
+    } break;
+}
+void exec_EBREAK(CPU* cpu, uint32_t inst) {
+    cpu->trap = Breakpoint;
+}
 
 void exec_ECALLBREAK(CPU* cpu, uint32_t inst) {
     if (imm_I(inst) == 0x0)
@@ -871,14 +879,15 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
             switch (funct3) {
                 case ECALLBREAK:
                     switch (cpu->regs[rs2(inst)]) {
-                        case 0x0: exec_ECALL(cpu, inst); break;
-                        case 0x1: exec_EBREAK(cpu, inst); break;
+                        case 0x0: exec_ECALL(cpu, inst); return -1; break;
+                        case 0x1: exec_EBREAK(cpu, inst); return -1; break;
                         case 0x2:
                             switch (funct7) {
                                 case 0x8: exec_SRET(cpu, inst); break;
                                 case 0x18: exec_MRET(cpu, inst); break;
                                 default: ;
                             } break;
+                        default: ;
                     } break;
                 case CSRRW  :  exec_CSRRW(cpu, inst); break;  
                 case CSRRS  :  exec_CSRRS(cpu, inst); break;  
