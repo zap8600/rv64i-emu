@@ -458,7 +458,7 @@ void exec_ADD(CPU* cpu, uint32_t inst) {
 void exec_MUL(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] =
         (uint64_t) ((int64_t)cpu->regs[rs1(inst)] * (int64_t)cpu->regs[rs2(inst)]);
-    print_op("mul\n");
+    //print_op("mul\n");
 }
 
 void exec_SUB(CPU* cpu, uint32_t inst) {
@@ -843,9 +843,9 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
             switch (funct3) {
                 case ADDSUB:
                     switch (funct7) {
-                        case ADD: exec_ADD(cpu, inst);
-                        case SUB: exec_ADD(cpu, inst);
-                        case MUL: exec_MUL(cpu, inst);
+                        case ADD: exec_ADD(cpu, inst); break;
+                        case SUB: exec_ADD(cpu, inst); break;
+                        case MUL: exec_MUL(cpu, inst); break;
                         default:
                             fprintf(stderr, 
                                 "R-TYPE [-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
