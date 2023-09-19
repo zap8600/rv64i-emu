@@ -65,7 +65,6 @@ void cpu_check_interrupt(CPU* cpu) {
     } else {
         irq = 0;
     }
-    
 
     if (irq != 0) {
         bus_store(&(cpu->bus), PLIC_SCLAIM, 32, irq);
