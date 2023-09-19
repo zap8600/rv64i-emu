@@ -57,11 +57,11 @@ void cpu_check_interrupt(CPU* cpu) {
     }
 
     uint64_t irq;
-    pthread_mutex_lock(&(uart->intr_mutex));
+    pthread_mutex_lock(&(cpu->bus.uart.intr_mutex));
     if (uart_interrupting(&(cpu->bus.uart))) {
         irq = UART_IRQ;
     } else {
-        pthread_mutex_unlock(&(uart->intr_mutex));
+        pthread_mutex_unlock(&(cpu->bus.uart.intr_mutex));
         if (virtio_interrupting(&(cpu->bus.virtio))) {
             virtio_disk_access(cpu);
             irq = VIRTIO_IRQ;
