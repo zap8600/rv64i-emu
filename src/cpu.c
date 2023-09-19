@@ -766,7 +766,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case BGE:   exec_BGE(cpu, inst); break;
                 case BLTU:  exec_BLTU(cpu, inst); break;
                 case BGEU:  exec_BGEU(cpu, inst); break;
-                default: cpu->trap = IllegalInstruction; return 0;
+                default: 
+                    fprintf(stderr, 
+                        "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                        , opcode, funct3, funct7);
+                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    return 0;
             } break;
 
         case LOAD:
@@ -778,7 +783,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case LBU :  exec_LBU(cpu, inst); break; 
                 case LHU :  exec_LHU(cpu, inst); break; 
                 case LWU :  exec_LWU(cpu, inst); break; 
-                default: cpu->trap = IllegalInstruction; return 0;
+                default:
+                    fprintf(stderr, 
+                        "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                        , opcode, funct3, funct7);
+                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    return 0;
             } break;
 
         case S_TYPE:
@@ -787,7 +797,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case SH  :  exec_SH(cpu, inst); break;  
                 case SW  :  exec_SW(cpu, inst); break;  
                 case SD  :  exec_SD(cpu, inst); break;  
-                default: cpu->trap = IllegalInstruction; return 0;
+                default:
+                    fprintf(stderr, 
+                        "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                        , opcode, funct3, funct7);
+                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    return 0;
             } break;
 
         case I_TYPE:  
@@ -801,7 +816,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     switch (funct7) {
                         case SRLI:  exec_SRLI(cpu, inst); break;
                         case SRAI:  exec_SRAI(cpu, inst); break;
-                        default: cpu->trap = IllegalInstruction; return 0;
+                        default:
+                            fprintf(stderr, 
+                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                , opcode, funct3, funct7);
+                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            return 0;
                     } break;
                 case ORI:   exec_ORI(cpu, inst); break;
                 case ANDI:  exec_ANDI(cpu, inst); break;
@@ -819,7 +839,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     switch (funct7) {
                         case ADD: exec_ADD(cpu, inst);
                         case SUB: exec_ADD(cpu, inst);
-                        default: cpu->trap = IllegalInstruction; return 0;
+                        default:
+                            fprintf(stderr, 
+                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                , opcode, funct3, funct7);
+                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            return 0;
                     } break;
                 case SLL:  exec_SLL(cpu, inst); break;
                 case SLT:  exec_SLT(cpu, inst); break;
@@ -829,7 +854,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     switch (funct7) {
                         case SRL:  exec_SRL(cpu, inst); break;
                         case SRA:  exec_SRA(cpu, inst); break;
-                        default: cpu->trap = IllegalInstruction; return 0;
+                        default:
+                            fprintf(stderr, 
+                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                , opcode, funct3, funct7);
+                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            return 0;
                     }
                 case OR:   exec_OR(cpu, inst); break;
                 case AND:  exec_AND(cpu, inst); break;
@@ -851,7 +881,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     switch (funct7) {
                         case SRLIW: exec_SRLIW(cpu, inst); break;
                         case SRAIW: exec_SRLIW(cpu, inst); break;
-                        default: cpu->trap = IllegalInstruction; return 0;
+                        default:
+                            fprintf(stderr, 
+                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                , opcode, funct3, funct7);
+                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            return 0;
                     } break;
             } break;
 
@@ -873,7 +908,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     } break;
                 case REMW:  exec_REMW(cpu, inst); break;
                 case REMUW: exec_REMUW(cpu, inst); break;
-                default: cpu->trap = IllegalInstruction; return 0;
+                default:
+                    fprintf(stderr, 
+                        "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                        , opcode, funct3, funct7);
+                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    return 0;
             } break;
 
         case CSR:
