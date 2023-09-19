@@ -117,7 +117,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
     }
 
     int64_t levels = 3;
-    uint64_t vpn[3] = [((addr & 0x1ff) >> 12), ((addr & 0x1ff) >> 21), ((addr & 0x1ff) >> 30),];
+    uint64_t vpn[3] = {((addr & 0x1ff) >> 12), ((addr & 0x1ff) >> 21), ((addr & 0x1ff) >> 30)};
 
     uint64_t a = cpu->page_table;
     int64_t i = levels - 1;
@@ -152,7 +152,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
         }
     }
 
-    uint64_t ppna[3] = [((pte & 0x1ff) >> 10), ((pte & 0x1ff) >> 19), ((pte & 0x03ffffff) >> 28),];
+    uint64_t ppna[3] = {((pte & 0x1ff) >> 10), ((pte & 0x1ff) >> 19), ((pte & 0x03ffffff) >> 28)};
     uint64_t ppn;
 
     uint64_t offset = addr & 0xfff;
