@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 
         cpu_check_interrupt(&cpu);
         switch (cpu.intr) {
-            case None: ; break;
+            case NULL: ; break;
             default: take_trap(&cpu, true); break;
         }
 

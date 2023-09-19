@@ -32,13 +32,13 @@ void cpu_check_interrupt(CPU* cpu) {
     switch (cpu->mode) {
         case Machine:
             if (((csr_read(cpu, MSTATUS) & 1) >> 3) == 0) {
-                cpu->intr = None;
+                cpu->intr = NULL;
                 return;
             }
             break;
         case Supervisor:
             if(((csr_read(cpu, SSTATUS) & 1) >> 1) == 0) {
-                cpu->intr = None;
+                cpu->intr = NULL;
                 return;
             }
             break;
@@ -91,7 +91,7 @@ void cpu_check_interrupt(CPU* cpu) {
         cpu->intr = SupervisorTimerInterrupt;
         return;
     }
-    cpu->intr = None;
+    cpu->intr = NULL;
     return;
 }
 
