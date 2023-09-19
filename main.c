@@ -107,6 +107,8 @@ int main(int argc, char* argv[]) {
 
         if(cpu.pc==0)
             break;
+
+        dump_csr(&cpu);
     }
     dump_registers(&cpu);
     printf("\n");
