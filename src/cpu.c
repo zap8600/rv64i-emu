@@ -117,7 +117,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
     }
 
     int64_t levels = 3;
-    uint64_t vpn = [((addr & 0x1ff) >> 12), ((addr & 0x1ff) >> 21), ((addr & 0x1ff) >> 30)];
+    uint64_t vpn[3] = [((addr & 0x1ff) >> 12), ((addr & 0x1ff) >> 21), ((addr & 0x1ff) >> 30),];
 
     uint64_t a = cpu->page_table;
     int64_t i = levels - 1;
@@ -152,7 +152,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
         }
     }
 
-    uint64_t ppn = [((pte & 0x1ff) >> 10), ((pte & 0x1ff) >> 19), ((pte & 0x03ffffff) >> 28)];
+    uint64_t ppn[3] = [((pte & 0x1ff) >> 10), ((pte & 0x1ff) >> 19), ((pte & 0x03ffffff) >> 28),];
 
     uint64_t offset = addr & 0xfff;
     switch (i) {
@@ -174,7 +174,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
 
 uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
     uint64_t p_addr = cpu_translate(cpu, addr, Load);
-    return bus_load(&(cpu->bus), addr, size)
+    return bus_load(&(cpu->bus), addr, size);
 }
 
 void cpu_store(CPU* cpu, uint64_t addr, uint64_t size, uint64_t value) {
@@ -510,7 +510,7 @@ void exec_ECALL(CPU* cpu, uint32_t inst) {
         case User: cpu->trap = EnvironmentCallFromUMode;
         case Supervisor: cpu->trap = EnvironmentCallFromSMode;
         case Machine: cpu->trap = EnvironmentCallFromMMode;
-    } break;
+    }
 }
 void exec_EBREAK(CPU* cpu, uint32_t inst) {
     cpu->trap = Breakpoint;
