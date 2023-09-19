@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 
     struct CPU cpu;
     cpu_init(&cpu);
-    read_file(&cpu, argv[1]);
+    read_bin(&cpu, argv[1]);
     read_disk(&cpu, argv[2]);
 
     while (1) {

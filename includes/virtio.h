@@ -41,5 +41,10 @@ void virtio_init(VIRTIO* virtio);
 bool virtio_interrupting(VIRTIO* virtio);
 uint64_t virtio_load(VIRTIO* virtio, uint64_t addr, uint64_t size);
 void virtio_store(VIRTIO* virtio, uint64_t addr, uint64_t size, uint64_t value);
+uint64_t virtio_get_new_id(VIRTIO* virtio);
+uint64_t virtio_desc_addr(VIRTIO* virtio);
+uint64_t virtio_read_disk(VIRTIO* virtio, uint64_t addr);
+void virtio_write_disk(VIRTIO* virtio, uint64_t addr, uint64_t value);
+void virtio_disk_access(CPU* cpu);
 
 #endif

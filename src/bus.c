@@ -36,7 +36,7 @@ void bus_store(BUS* bus, uint64_t addr, uint64_t size, uint64_t value) {
         uart_store(&(bus->uart), addr, size, value);
     }
     if (VIRTIO_BASE <= addr && addr < (VIRTIO_BASE + VIRTIO_SIZE)) {
-        virtio_store(&(bus->virtio), addr, size);
+        virtio_store(&(bus->virtio), addr, size, value);
     }
     if (DRAM_BASE <= addr) {
         dram_store(&(bus->dram), addr, size, value);

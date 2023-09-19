@@ -39,7 +39,7 @@ uint64_t virtio_load_32(VIRTIO* virtio, uint64_t addr) {
     return 1;
 }
 
-uint64_t plic_load(VIRTIO* virtio, uint64_t addr, uint64_t size) {
+uint64_t virtio_load(VIRTIO* virtio, uint64_t addr, uint64_t size) {
     switch (size) {
         case 32: return virtio_load_32(virtio, addr); break;
         default: ;
