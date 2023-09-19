@@ -31,7 +31,7 @@ typedef enum Interrupt {
     None = -1,
     UserSoftwareInterrupt = 0,
     SupervisorSoftwareInterrupt = 1,
-    MachineHardwareInterrupt = 3,
+    MachineSoftwareInterrupt = 3,
     UserTimerInterrupt = 4,
     SupervisorTimerInterrupt = 5,
     MachineTimerInterrupt = 7,
