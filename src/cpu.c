@@ -841,11 +841,10 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
         case R_TYPE:  
             switch (funct3) {
                 case ADDSUB:
-                    printf("yea its mul\n");
                     switch (funct7) {
                         case ADD: exec_ADD(cpu, inst);
-                        case MUL: exec_MUL(cpu, inst);
                         case SUB: exec_ADD(cpu, inst);
+                        case MUL: exec_MUL(cpu, inst);
                         default:
                             fprintf(stderr, 
                                 "R-TYPE [-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
