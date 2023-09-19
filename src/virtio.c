@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "../includes/virtio.h"
 
-virtio_init(VIRTIO* virtio) {
+void virtio_init(VIRTIO* virtio) {
     virtio->id = 0;
     virtio->driver_features = 0;
     virtio->page_size = 0;
