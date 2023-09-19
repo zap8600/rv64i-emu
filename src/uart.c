@@ -76,11 +76,11 @@ void uart_store(UART* uart, uint64_t addr, uint64_t size, uint64_t value) {
 }
 
 bool uart_interrupting(UART* uart) {
-    pthread_mutex_lock(&(uart->intr_mutex));
+    //pthread_mutex_lock(&(uart->intr_mutex));
     if(uart->interrupting) {
         uart->interrupting = false;
         return true;
     }
-    pthread_mutex_unlock(&(uart->intr_mutex));
+    //pthread_mutex_unlock(&(uart->intr_mutex));
     return false;
 }
