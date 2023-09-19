@@ -68,6 +68,7 @@ int cpu_execute(struct CPU *cpu, uint32_t inst);
 void dump_registers(struct CPU *cpu);
 void dump_csr(struct CPU *cpu);
 void take_trap(CPU* cpu, bool interrupting);
+bool is_fatal(CPU* cpu);
 void virtio_disk_access(CPU* cpu);
 
 #endif

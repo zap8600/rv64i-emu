@@ -1029,7 +1029,7 @@ void dump_csr(CPU* cpu) {
     printf("   mstatus: %#-13.2lx  ", csr_read(cpu, MSTATUS));
     printf("   mtvec: %#-13.2lx  ", csr_read(cpu, MTVEC));
     printf("   mepc: %#-13.2lx  ", csr_read(cpu, MEPC));
-    printf("   mcause: %#-13.2lx  ", csr_read(cpu, MCAUSE));
+    printf("   mcause: %#-13.2lx\n", csr_read(cpu, MCAUSE));
 }
 
 void take_trap(CPU* cpu, bool interrupting) {
@@ -1089,6 +1089,17 @@ void take_trap(CPU* cpu, bool interrupting) {
         }
         csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 3);
         csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 3) << 11);
+    }
+}
+
+bool is_fatal(CPU* cpu) {
+    switch (cpu->trap) {
+        case InstructionAddressMisaligned: return true; break;
+        case InstructionAccessFault: return true; break;
+        case LoadAccessFault: return true; break;
+        case StoreAMOAddressMisaligned: return true; break;
+        case StoreAMOAccessFault: return true; break;
+        default: return false; break;
     }
 }
 

@@ -95,13 +95,15 @@ int main(int argc, char* argv[]) {
         // execute
         if (!cpu_execute(&cpu, inst))
             take_trap(&cpu, false);
+            if (is_fatal(&cpu)) {
+                break;
+            }
 
         cpu_check_interrupt(&cpu);
         switch (cpu.intr) {
             case None: ; break;
             default: take_trap(&cpu, true); break;
         }
-        
 
         if(cpu.pc==0)
             break;
