@@ -1,6 +1,8 @@
 #ifndef VIRTIO_H
 #define VIRTIO_H
 
+#include "cpu.h"
+
 #define VIRTIO_BASE 0x10001000
 #define VIRTIO_SIZE 0x1000
 

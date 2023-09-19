@@ -1,8 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "../includes/virtio.h"
-#include "../includes/cpu.h"
-#include "../includes/bus.h"
 
 virtio_init(VIRTIO* virtio) {
     virtio->id = 0;
