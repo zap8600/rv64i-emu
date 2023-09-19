@@ -100,7 +100,7 @@ void cpu_update_paging(CPU* cpu, size_t csr_addr) {
         return;
     }
 
-    cpu->page_table = (csr_read(cpu, SATP) & ((1 << 48) -1)) * PAGE_SIZE;
+    cpu->page_table = (csr_read(cpu, SATP) & ((1 << 48) -1)) * CPU_PAGE_SIZE;
 
     uint64_t mode = csr_read(cpu, SATP) >> 60;
 
@@ -117,7 +117,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
     }
 
     int64_t levels = 3;
-    uint64_t vpn = [(addr & 0x1ff) >> 12, (addr & 0x1ff) >> 21, (addr & 0x1ff) >> 30];
+    uint64_t vpn = [((addr & 0x1ff) >> 12), ((addr & 0x1ff) >> 21), ((addr & 0x1ff) >> 30)];
 
     uint64_t a = cpu->page_table;
     int64_t i = levels - 1;
@@ -142,7 +142,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
         }
         i -= 1;
         uint64_t ppn = (pte & 0x0fffffffffff) >> 10;
-        a = ppn * PAGE_SIZE;
+        a = ppn * CPU_PAGE_SIZE;
         if (i < 0) {
             switch (access_type) {
                 case Instruction: cpu->trap = InstructionPageFault; return InstructionPageFault;
@@ -152,7 +152,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
         }
     }
 
-    uint64_t ppn = [(pte & 0x1ff) >> 10, (pte & 1ff) >> 19, (pte & 0x03ffffff) >> 28];
+    uint64_t ppn = [((pte & 0x1ff) >> 10), ((pte & 0x1ff) >> 19), ((pte & 0x03ffffff) >> 28)];
 
     uint64_t offset = addr & 0xfff;
     switch (i) {

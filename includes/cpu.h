@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "bus.h"
 
-#define PAGE_SIZE 4069
+#define CPU_PAGE_SIZE 4069
 
 typedef enum AccessType {
     Instruction,
