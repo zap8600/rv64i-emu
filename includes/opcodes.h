@@ -45,7 +45,7 @@
 #define R_TYPE  0x33
     #define ADDSUB  0x0
         #define ADD     0x00
-        #define MUL 0x01
+        #define MUL     0x01
         #define SUB     0x20
     #define SLL     0x1
     #define SLT     0x2
