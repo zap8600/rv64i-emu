@@ -972,18 +972,16 @@ void virtio_disk_access(CPU* cpu) {
 
     uint64_t blk_sector = bus_load(&(cpu->bus), addr0 + 8, 64);
 
-    switch ((flags1 & 2) == 0) {
-        case true:
-            for (uint64_t i = 0; i < len1; i++) {
-                uint64_t data = bus_load(&(cpu->bus), addr1 + i, 8);
-                virtio_write_disk(&(cpu->bus.virtio), blk_sector * 512 + i, data);
-            }
-        case false:
-            for (uint64_t i = 0; i < len1; i++) {
-                uint64_t data = virtio_read_disk(&(cpu->bus.virtio), blk_sector * 512 + 1);
-                bus_store(&(cpu->bus), addr1 + i, 8, data);
-            }
-        default: ;
+    if ((flags1 & 2) == 0) {
+        for (uint64_t i = 0; i < len1; i++) {
+            uint64_t data = bus_load(&(cpu->bus), addr1 + i, 8);
+            virtio_write_disk(&(cpu->bus.virtio), blk_sector * 512 + i, data);
+        }
+    } else {
+        for (uint64_t i = 0; i < len1; i++) {
+            uint64_t data = virtio_read_disk(&(cpu->bus.virtio), blk_sector * 512 + 1);
+            bus_store(&(cpu->bus), addr1 + i, 8, data);
+        }
     }
 
     uint64_t new_id = virtio_get_new_id(&(cpu->bus.virtio));
