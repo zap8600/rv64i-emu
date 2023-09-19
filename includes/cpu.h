@@ -38,7 +38,7 @@ typedef enum Interrupt {
     UserExternalInterrupt = 8,
     SupervisorExternalInterrupt = 9,
     MachineExternalInterrupt = 11,
-}
+} Interrupt;
 
 typedef struct CPU {
     uint64_t regs[32];
