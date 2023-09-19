@@ -46,7 +46,7 @@ typedef struct CPU {
     Mode mode;
     uint64_t csr[4069];
     struct BUS bus;
-    Exception trap;
+    uint64_t trap;
     Interrupt intr;
 } CPU;
 
