@@ -170,7 +170,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
                 case Load: cpu->trap = LoadPageFault; return LoadPageFault;
                 case Store: cpu->trap = StoreAMOPageFault; return StoreAMOPageFault;
             } break;
-    } break;
+    }
 }
 
 uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
