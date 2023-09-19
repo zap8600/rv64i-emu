@@ -28,19 +28,6 @@ void cpu_init(CPU *cpu) {
     bus_init(&(cpu->bus));
 }
 
-uint32_t cpu_fetch(CPU *cpu) {
-    uint32_t inst = bus_load(&(cpu->bus), cpu->pc, 32);
-    return inst;
-}
-
-uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
-    return bus_load(&(cpu->bus), addr, size);
-}
-
-void cpu_store(CPU* cpu, uint64_t addr, uint64_t size, uint64_t value) {
-    bus_store(&(cpu->bus), addr, size, value);
-}
-
 void cpu_check_interrupt(CPU* cpu) {
     switch (cpu->mode) {
         case Machine:
@@ -109,7 +96,7 @@ void cpu_check_interrupt(CPU* cpu) {
 }
 
 void cpu_update_paging(CPU* cpu, size_t csr_addr) {
-    if (csr_addr != SATP)
+    if (csr_addr != SATP) {
         return;
     }
 
@@ -122,6 +109,83 @@ void cpu_update_paging(CPU* cpu, size_t csr_addr) {
     } else {
         cpu->enable_paging = false;
     }
+}
+
+uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
+    if (!(cpu->enable_paging)) {
+        return addr;
+    }
+
+    int64_t levels = 3;
+    uint64_t vpn = [(addr & 0x1ff) >> 12, (addr & 0x1ff) >> 21, (addr & 0x1ff) >> 30];
+
+    uint64_t a = cpu->page_table;
+    int64_t i = levels - 1;
+    uint64_t pte;
+    while (1) {
+        pte = bus_load(&(cpu->bus), a + vpn[i] * 8, 64);
+
+        uint64_t v = pte & 1;
+        uint64_t r = (pte & 1) >> 1;
+        uint64_t w = (pte & 1) >> 2;
+        uint64_t x = (pte & 1) >> 3;
+        if (v == 0 || r == 0 && w == 1) {
+            switch (access_type) {
+                case Instruction: cpu->trap = InstructionPageFault; return InstructionPageFault;
+                case Load: cpu->trap = LoadPageFault; return LoadPageFault;
+                case Store: cpu->trap = StoreAMOPageFault; return StoreAMOPageFault;
+            } break;
+        }
+
+        if (r == 1 || x == 1) {
+            break;
+        }
+        i -= 1;
+        uint64_t ppn = (pte & 0x0fffffffffff) >> 10;
+        a = ppn * PAGE_SIZE;
+        if (i < 0) {
+            switch (access_type) {
+                case Instruction: cpu->trap = InstructionPageFault; return InstructionPageFault;
+                case Load: cpu->trap = LoadPageFault; return LoadPageFault;
+                case Store: cpu->trap = StoreAMOPageFault; return StoreAMOPageFault;
+            } break;
+        }
+    }
+
+    uint64_t ppn = [(pte & 0x1ff) >> 10, (pte & 1ff) >> 19, (pte & 0x03ffffff) >> 28];
+
+    uint64_t offset = addr & 0xfff;
+    switch (i) {
+        case 0:
+            ppn = (pte & 0x0fffffffffff) >> 10;
+            return (ppn << 12) | offset;
+        case 1:
+            return (ppn[2] << 30) | (ppn[1] << 21) | (vpn[0] << 12) | offset;
+        case 2:
+            return (ppn[2] << 30) | (vpn[1] << 21) | (vpn[0] << 12) | offset;
+        default:
+            switch (access_type) {
+                case Instruction: cpu->trap = InstructionPageFault; return InstructionPageFault;
+                case Load: cpu->trap = LoadPageFault; return LoadPageFault;
+                case Store: cpu->trap = StoreAMOPageFault; return StoreAMOPageFault;
+            } break;
+    } break;
+}
+
+uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
+    uint64_t p_addr = cpu_translate(cpu, addr, Load);
+    return bus_load(&(cpu->bus), addr, size)
+}
+
+void cpu_store(CPU* cpu, uint64_t addr, uint64_t size, uint64_t value) {
+    uint64_t p_addr = cpu_translate(cpu, addr, Load);
+    bus_store(&(cpu->bus), p_addr, size, value);
+}
+
+uint32_t cpu_fetch(CPU *cpu) {
+    uint64_t p_pc = cpu_translate(cpu, cpu->pc, Instruction);
+    uint32_t inst = bus_load(&(cpu->bus), p_pc, 32);
+    return inst;
 }
 
 //=====================================================================================
@@ -523,26 +587,32 @@ void exec_REMUW(CPU* cpu, uint32_t inst) {
 void exec_CSRRW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = csr_read(cpu, csr(inst));
     csr_write(cpu, csr(inst), cpu->regs[rs1(inst)]);
+    cpu_update_paging(cpu, csr(inst));
     //print_op("csrrw\n");
 }
 void exec_CSRRS(CPU* cpu, uint32_t inst) {
     csr_write(cpu, csr(inst), cpu->csr[csr(inst)] | cpu->regs[rs1(inst)]);
+    cpu_update_paging(cpu, csr(inst));
     //print_op("csrrs\n");
 }
 void exec_CSRRC(CPU* cpu, uint32_t inst) {
     csr_write(cpu, csr(inst), cpu->csr[csr(inst)] & !(cpu->regs[rs1(inst)]) );
+    cpu_update_paging(cpu, csr(inst));
     //print_op("csrrc\n");
 }
 void exec_CSRRWI(CPU* cpu, uint32_t inst) {
     csr_write(cpu, csr(inst), rs1(inst));
+    cpu_update_paging(cpu, csr(inst));
     //print_op("csrrwi\n");
 }
 void exec_CSRRSI(CPU* cpu, uint32_t inst) {
     csr_write(cpu, csr(inst), cpu->csr[csr(inst)] | rs1(inst));
+    cpu_update_paging(cpu, csr(inst));
     //print_op("csrrsi\n");
 }
 void exec_CSRRCI(CPU* cpu, uint32_t inst) {
     csr_write(cpu, csr(inst), cpu->csr[csr(inst)] & !rs1(inst));
+    cpu_update_paging(cpu, csr(inst));
     //print_op("csrrci\n");
 }
 
@@ -799,16 +869,17 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
 
         case CSR:
             switch (funct3) {
-                /*
                 case ECALLBREAK:
                     switch (cpu->regs[rs2(inst)]) {
+                        case 0x0: exec_ECALL(cpu, inst); break;
+                        case 0x1: exec_EBREAK(cpu, inst); break;
                         case 0x2:
                             switch (funct7) {
                                 case 0x8: exec_SRET(cpu, inst); break;
-                                //case 0x18: exec_MRET(cpu, inst); break;
+                                case 0x18: exec_MRET(cpu, inst); break;
+                                default: ;
                             } break;
                     } break;
-                */
                 case CSRRW  :  exec_CSRRW(cpu, inst); break;  
                 case CSRRS  :  exec_CSRRS(cpu, inst); break;  
                 case CSRRC  :  exec_CSRRC(cpu, inst); break;  
