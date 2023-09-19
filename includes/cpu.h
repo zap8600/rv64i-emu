@@ -28,7 +28,7 @@ typedef enum Exception {
 } Exception;
 
 typedef enum Interrupt {
-    None = -1;
+    None = -1,
     UserSoftwareInterrupt = 0,
     SupervisorSoftwareInterrupt = 1,
     MachineHardwareInterrupt = 3,
