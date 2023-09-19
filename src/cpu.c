@@ -23,6 +23,8 @@ void cpu_init(CPU *cpu) {
     cpu->regs[2] = DRAM_BASE + DRAM_SIZE;   // Set stack pointer
     cpu->pc      = DRAM_BASE;               // Set program counter to the base address
     cpu->mode    = Machine;
+    cpu->enable_paging = false;
+    cpu->page_table = 0;
     bus_init(&(cpu->bus));
 }
 
@@ -104,6 +106,22 @@ void cpu_check_interrupt(CPU* cpu) {
     }
     cpu->intr = None;
     return;
+}
+
+void cpu_update_paging(CPU* cpu, size_t csr_addr) {
+    if (csr_addr != SATP)
+        return;
+    }
+
+    cpu->page_table = (csr_read(cpu, SATP) & ((1 << 48) -1)) * PAGE_SIZE;
+
+    uint64_t mode = csr_read(cpu, SATP) >> 60;
+
+    if (mode == 8) {
+        cpu->enable_paging = true;
+    } else {
+        cpu->enable_paging = false;
+    }
 }
 
 //=====================================================================================

@@ -2,7 +2,16 @@
 #define CPU_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "bus.h"
+
+#define PAGE_SIZE 4069
+
+typedef enum AccessType {
+    Instruction,
+    Load,
+    Store,
+} AccessType;
 
 typedef enum Mode {
     User = 0b00,
@@ -48,6 +57,8 @@ typedef struct CPU {
     struct BUS bus;
     uint64_t trap;
     Interrupt intr;
+    bool enable_paging;
+    uint64_t page_table;
 } CPU;
 
 void cpu_init(struct CPU *cpu);
