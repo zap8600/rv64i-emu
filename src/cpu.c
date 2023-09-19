@@ -52,7 +52,7 @@ void cpu_check_interrupt(CPU* cpu) {
                 return;
             }
             break;
-        default ; break;
+        default: ; break;
     }
 
     uint64_t irq;
@@ -65,38 +65,38 @@ void cpu_check_interrupt(CPU* cpu) {
     pthread_mutex_unlock(&(cpu->bus.uart.intr_mutex));
 
     if (irq != 0) {
-        bus_store(&(cpu->bus), PLIC_SCLAIM, 32, int);
+        bus_store(&(cpu->bus), PLIC_SCLAIM, 32, irq);
         csr_write(cpu, MIP, csr_read(cpu, MIP) | MIP_SEIP);
     }
 
     uint64_t pending = csr_read(cpu, MIE) & csr_read(cpu, MIP);
     if ((pending & MIP_MEIP) != 0) {
-        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_MEIP);
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 11);
         cpu->intr = MachineExternalInterrupt;
         return;
     }
     if ((pending & MIP_MSIP) != 0) {
-        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_MSIP);
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 3);
         cpu->intr = MachineSoftwareInterrupt;
         return;
     }
     if ((pending & MIP_MTIP) != 0) {
-        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_MTIP);
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 7);
         cpu->intr = MachineTimerInterrupt;
         return;
     }
     if ((pending & MIP_SEIP) != 0) {
-        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_SEIP);
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 9);
         cpu->intr = SupervisorExternalInterrupt;
         return;
     }
     if ((pending & MIP_SSIP) != 0) {
-        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_SSIP);
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 1);
         cpu->intr = SupervisorSoftwareInterrupt;
         return;
     }
     if ((pending & MIP_STIP) != 0) {
-        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_STIP);
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 5);
         cpu->intr = SupervisorTimerInterrupt;
         return;
     }
