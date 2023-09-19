@@ -2,11 +2,6 @@
 #include <stdint.h>
 #include "../includes/plic.h"
 
-#define PLIC_PENDING (PLIC_BASE + 0x1000)
-#define PLIC_SENABLE (PLIC_BASE + 0X2000)
-#define PLIC_SPRIORITY (PLIC_BASE + 0x201000)
-#define PLIC_SCLAIM (PLIC_BASE + 0x201004)
-
 void plic_init(PLIC* plic) {
     plic->pending = 0;
     plic->senable = 0;

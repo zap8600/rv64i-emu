@@ -56,7 +56,14 @@ int main(int argc, char* argv[]) {
         cpu.pc += 4;
         // execute
         if (!cpu_execute(&cpu, inst))
-            take_trap(&cpu);
+            take_trap(&cpu, false);
+
+        cpu_check_interrupt(&cpu);
+        switch (cpu.intr) {
+            case None: ; break;
+            default: take_trap(&cpu, true); break;
+        }
+        
 
         if(cpu.pc==0)
             break;

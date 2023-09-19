@@ -4,6 +4,7 @@
 #include "../includes/cpu.h"
 #include "../includes/opcodes.h"
 #include "../includes/csr.h"
+#include "../includes/uart.h"
 
 #define ANSI_YELLOW  "\x1b[33m"
 #define ANSI_BLUE    "\x1b[31m"
@@ -35,6 +36,72 @@ uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
 
 void cpu_store(CPU* cpu, uint64_t addr, uint64_t size, uint64_t value) {
     bus_store(&(cpu->bus), addr, size, value);
+}
+
+void cpu_check_interrupt(CPU* cpu) {
+    switch (cpu->mode) {
+        case Machine:
+            if (((csr_read(cpu, MSTATUS) & 1) >> 3) == 0) {
+                cpu->intr = None;
+                return;
+            }
+            break;
+        case Supervisor:
+            if(((csr_read(cpu, SSTATUS) & 1) >> 1) == 0) {
+                cpu->intr = None;
+                return;
+            }
+            break;
+        default ; break;
+    }
+
+    uint64_t irq;
+    pthread_mutex_lock(&(cpu->bus.uart.intr_mutex));
+    if (cpu->bus.uart.interrupting) {
+        irq = UART_IRQ;
+    } else {
+        irq = 0;
+    }
+    pthread_mutex_unlock(&(cpu->bus.uart.intr_mutex));
+
+    if (irq != 0) {
+        bus_store(&(cpu->bus), PLIC_SCLAIM, 32, int);
+        csr_write(cpu, MIP, csr_read(cpu, MIP) | MIP_SEIP);
+    }
+
+    uint64_t pending = csr_read(cpu, MIE) & csr_read(cpu, MIP);
+    if ((pending & MIP_MEIP) != 0) {
+        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_MEIP);
+        cpu->intr = MachineExternalInterrupt;
+        return;
+    }
+    if ((pending & MIP_MSIP) != 0) {
+        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_MSIP);
+        cpu->intr = MachineSoftwareInterrupt;
+        return;
+    }
+    if ((pending & MIP_MTIP) != 0) {
+        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_MTIP);
+        cpu->intr = MachineTimerInterrupt;
+        return;
+    }
+    if ((pending & MIP_SEIP) != 0) {
+        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_SEIP);
+        cpu->intr = SupervisorExternalInterrupt;
+        return;
+    }
+    if ((pending & MIP_SSIP) != 0) {
+        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_SSIP);
+        cpu->intr = SupervisorSoftwareInterrupt;
+        return;
+    }
+    if ((pending & MIP_STIP) != 0) {
+        csr_write(cpu, MIP, csr_read(cpu, MIP) & !MIP_STIP);
+        cpu->intr = SupervisorTimerInterrupt;
+        return;
+    }
+    cpu->intr = None;
+    return;
 }
 
 //=====================================================================================
@@ -824,12 +891,27 @@ void dump_csr(CPU* cpu) {
     printf("   mcause: %#-13.2lx  ", csr_read(cpu, MCAUSE));
 }
 
-void take_trap(CPU* cpu) {
+void take_trap(CPU* cpu, bool interrupting) {
     uint64_t exec_pc = cpu->pc - 4;
     Mode prev_mode = cpu->mode;
+
+    if (interrupting) {
+        cpu->trap = (1 << 63) | cpu->trap;
+    }
+
     if ((prev_mode <= Supervisor) && (csr_read(cpu, MEDELEG) >> (uint32_t)cpu->trap) != 0) {
         cpu->mode = Supervisor;
-        cpu->pc = csr_read(cpu, STVEC) & !1;
+
+        if (interrupting) {
+            uint64_t vector;
+            switch (csr_read(cpu, STVEC) & 1) {
+                case 1: vector = 4 * cpu->trap; break;
+                default: vector = 0; break;
+            }
+            cpu->pc = (csr_read(cpu, STVEC) & !1) + vector;
+        } else {
+            cpu->pc = csr_read(cpu, STVEC) & !1;
+        }
         csr_write(cpu, SEPC, exec_pc & !1);
         csr_write(cpu, SCAUSE, cpu->trap);
         csr_write(cpu, STVAL, 0);
@@ -845,7 +927,17 @@ void take_trap(CPU* cpu) {
         }
     } else {
         cpu->mode = Machine;
-        cpu->pc = csr_read(cpu, MTVEC);
+
+        if (interrupting) {
+            uint64_t vector;
+            switch (csr_read(cpu, MTVEC) & 1) {
+                case 1: vector = 4 * cpu->trap; break;
+                default: vector = 0; break;
+            }
+            cpu->pc = (csr_read(cpu, MTVEC) & !1) + vector;
+        } else {
+            cpu->pc = csr_read(cpu, MTVEC);
+        }
         csr_write(cpu, MEPC, exec_pc);
         csr_write(cpu, MCAUSE, cpu->trap);
         csr_write(cpu, MTVAL, 0);

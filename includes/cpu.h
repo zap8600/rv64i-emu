@@ -27,6 +27,19 @@ typedef enum Exception {
     StoreAMOPageFault = 15,
 } Exception;
 
+typedef enum Interrupt {
+    None = -1;
+    UserSoftwareInterrupt = 0,
+    SupervisorSoftwareInterrupt = 1,
+    MachineHardwareInterrupt = 3,
+    UserTimerInterrupt = 4,
+    SupervisorTimerInterrupt = 5,
+    MachineTimerInterrupt = 7,
+    UserExternalInterrupt = 8,
+    SupervisorExternalInterrupt = 9,
+    MachineExternalInterrupt = 11,
+}
+
 typedef struct CPU {
     uint64_t regs[32];
     uint64_t pc;
@@ -34,6 +47,7 @@ typedef struct CPU {
     uint64_t csr[4069];
     struct BUS bus;
     Exception trap;
+    Interrupt intr;
 } CPU;
 
 void cpu_init(struct CPU *cpu);

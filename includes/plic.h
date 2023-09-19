@@ -4,6 +4,11 @@
 #define PLIC_BASE 0xc000000
 #define PLIC_SIZE 0x4000000
 
+#define PLIC_PENDING (PLIC_BASE + 0x1000)
+#define PLIC_SENABLE (PLIC_BASE + 0X2000)
+#define PLIC_SPRIORITY (PLIC_BASE + 0x201000)
+#define PLIC_SCLAIM (PLIC_BASE + 0x201004)
+
 typedef struct PLIC {
     uint64_t pending;
     uint64_t senable;
