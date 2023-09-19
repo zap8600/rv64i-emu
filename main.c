@@ -94,8 +94,8 @@ int main(int argc, char* argv[]) {
         cpu.pc += 4;
         // execute
         if (!cpu_execute(&cpu, inst))
-            //printf("exec!\n");
             take_trap(&cpu, false);
+            printf("exec!\n");
             if (is_fatal(&cpu)) {
                 break;
             }
