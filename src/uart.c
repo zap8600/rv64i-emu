@@ -81,5 +81,6 @@ bool uart_interrupting(UART* uart) {
         uart->interrupting = false;
         return true;
     }
+    pthread_mutex_unlock(&(uart->intr_mutex));
     return false;
 }

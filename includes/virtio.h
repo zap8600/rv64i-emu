@@ -8,7 +8,7 @@
 
 #define VIRTIO_IRQ 1
 
-#define VIRTIO_DESC_SIZE 16
+#define VRING_DESC_SIZE 16
 #define DESC_NUM 8
 
 #define VIRTIO_MAGIC (VIRTIO_BASE + 0x000)

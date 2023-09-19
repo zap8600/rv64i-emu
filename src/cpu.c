@@ -5,6 +5,7 @@
 #include "../includes/opcodes.h"
 #include "../includes/csr.h"
 #include "../includes/uart.h"
+#include "../includes/virtio.h"
 
 #define ANSI_YELLOW  "\x1b[33m"
 #define ANSI_BLUE    "\x1b[31m"
@@ -56,13 +57,14 @@ void cpu_check_interrupt(CPU* cpu) {
     }
 
     uint64_t irq;
-    pthread_mutex_lock(&(cpu->bus.uart.intr_mutex));
-    if (cpu->bus.uart.interrupting) {
+    if (uart_interrupting(&(cpu->bus.uart))) {
         irq = UART_IRQ;
+    } else if (virtio_interrupting(&(cpu->bus.virtio))) {
+        virtio_disk_access(cpu);
+        irq = VIRTIO_IRQ;
     } else {
         irq = 0;
     }
-    pthread_mutex_unlock(&(cpu->bus.uart.intr_mutex));
 
     if (irq != 0) {
         bus_store(&(cpu->bus), PLIC_SCLAIM, 32, irq);
