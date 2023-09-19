@@ -455,6 +455,11 @@ void exec_ADD(CPU* cpu, uint32_t inst) {
     //print_op("add\n");
 }
 
+void exec_MUL(CPU* cpu, uint32_t inst) {
+    cpu->regs[rd(inst)] =
+        (uint64_t) ((int64_t)cpu->regs[rs1(inst)] * (int64_t)cpu->regs[rs2(inst)]);
+}
+
 void exec_SUB(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] =
         (uint64_t) ((int64_t)cpu->regs[rs1(inst)] - (int64_t)cpu->regs[rs2(inst)]);
@@ -838,6 +843,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case ADDSUB:
                     switch (funct7) {
                         case ADD: exec_ADD(cpu, inst);
+                        case MUL: exec_MUL(cpu, inst);
                         case SUB: exec_ADD(cpu, inst);
                         default:
                             fprintf(stderr, 
