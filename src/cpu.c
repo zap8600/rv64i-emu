@@ -952,3 +952,40 @@ void take_trap(CPU* cpu, bool interrupting) {
         csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 3) << 11);
     }
 }
+
+void virtio_disk_access(CPU* cpu) {
+    uint64_t desc_addr = virtio_desc_addr(&(cpu->bus.virtio));
+    uint64_t avail_addr = virtio_desc_addr(&(cpu->bus.virtio)) + 0x40;
+    uint64_t used_addr = virtio_desc_addr(&(cpu->bus.virtio)) + 4096;
+
+    uint64_t offset = bus_load(&(cpu->bus), avail_addr + 1, 16);
+    uint64_t index = bus_load(&(cpu->bus), avail_addr + (offset % DESC_NUM) + 2, 16);
+
+    uint64_t desc_addr0 = desc_addr + VRING_DESC_SIZE * index;
+    uint64_t addr0 = bus_load(&(cpu->bus), desc_addr0, 64);
+    uint64_t next0 = bus_load(&(cpu->bus), desc_addr0 + 14, 64);
+
+    uint64_t desc_addr1 = desc_addr + VRING_DESC_SIZE * next0;
+    uint64_t addr1 = bus_load(&(cpu->bus), desc_addr0, 64);
+    uint64_t len1 = bus_load(&(cpu->bus), desc_addr1 + 8, 32);
+    uint64_t flags1 = bus_load(&(cpu->bus), desc_addr1 + 12, 16);
+
+    uint64_t blk_sector = bus_load(&(cpu->bus), addr0 + 8, 64);
+
+    switch ((flags1 & 2) == 0) {
+        case true:
+            for (uint64_t i = 0; i < len1; i++) {
+                uint64_t data = bus_load(&(cpu->bus), addr1 + i, 8);
+                virtio_write_disk(&(cpu->bus.virtio), blk_sector * 512 + i, data);
+            }
+        case false:
+            for (uint64_t i = 0; i < len1; i++) {
+                uint64_t data = virtio_read_disk(&(cpu->bus.virtio), blk_sector * 512 + 1);
+                bus_store(&(cpu->bus), addr1 + i, 8, data);
+            }
+        default: ;
+    }
+
+    uint64_t new_id = virtio_get_new_id(&(cpu->bus.virtio));
+    bus_store(&(cpu->bus), used_addr + 2, 16, new_id % 8);
+}

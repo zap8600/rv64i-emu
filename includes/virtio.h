@@ -1,8 +1,6 @@
 #ifndef VIRTIO_H
 #define VIRTIO_H
 
-#include "cpu.h"
-
 #define VIRTIO_BASE 0x10001000
 #define VIRTIO_SIZE 0x1000
 
@@ -47,6 +45,5 @@ uint64_t virtio_get_new_id(VIRTIO* virtio);
 uint64_t virtio_desc_addr(VIRTIO* virtio);
 uint64_t virtio_read_disk(VIRTIO* virtio, uint64_t addr);
 void virtio_write_disk(VIRTIO* virtio, uint64_t addr, uint64_t value);
-void virtio_disk_access(CPU* cpu);
 
 #endif
