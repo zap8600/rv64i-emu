@@ -732,7 +732,7 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, MEPC);
-    switch ((csr_read(cpu, MSTATUS) & 3) >> 1) {
+    switch ((csr_read(cpu, MSTATUS) & 3) >> 11) {
         case 2: cpu->mode = Machine; break;
         case 1: cpu->mode = Supervisor; break;
         default: cpu->mode = User; break;
@@ -742,7 +742,7 @@ void exec_MRET(CPU* cpu, uint32_t inst) {
     } else {
         csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 3);
     }
-    csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 5));
+    csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 7));
     csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 3) << 11);
     print_op("mret\n");
 }
@@ -934,9 +934,19 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                             switch (funct7) {
                                 case 0x8: exec_SRET(cpu, inst); break;
                                 case 0x18: exec_MRET(cpu, inst); break;
-                                default: ;
+                                default: 
+                                    fprintf(stderr, 
+                                            "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                            , opcode, funct3, funct7);
+                                    cpu->trap = IllegalInstruction;
+                                    return 0;
                             } break;
-                        default: ;
+                        default: 
+                            fprintf(stderr, 
+                                    "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                    , opcode, funct3, funct7);
+                            cpu->trap = IllegalInstruction;
+                            return 0;
                     } break;
                 case CSRRW  :  exec_CSRRW(cpu, inst); break;  
                 case CSRRS  :  exec_CSRRS(cpu, inst); break;  
