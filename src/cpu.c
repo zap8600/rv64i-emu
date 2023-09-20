@@ -179,7 +179,7 @@ uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
 }
 
 void cpu_store(CPU* cpu, uint64_t addr, uint64_t size, uint64_t value) {
-    uint64_t p_addr = cpu_translate(cpu, addr, Load);
+    uint64_t p_addr = cpu_translate(cpu, addr, Store);
     bus_store(&(cpu->bus), p_addr, size, value);
 }
 
