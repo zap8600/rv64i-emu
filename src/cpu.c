@@ -599,8 +599,8 @@ void exec_CSRRW(CPU* cpu, uint32_t inst) {
     print_op("csrrw\n");
 }
 void exec_CSRRS(CPU* cpu, uint32_t inst) {
-    csr_write(cpu, csr(inst), cpu->csr[csr(inst)] | cpu->regs[rs1(inst)]);
     cpu->regs[rd(inst)] = cpu->csr[csr(inst)];
+    csr_write(cpu, csr(inst), cpu->csr[csr(inst)] | cpu->regs[rs1(inst)]);
     cpu_update_paging(cpu, csr(inst));
     print_op("csrrs\n");
 }
