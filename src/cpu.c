@@ -724,7 +724,6 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
 }
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
-    printf("its mret\n");
     cpu->pc = csr_read(cpu, MEPC);
     switch ((csr_read(cpu, MSTATUS) & 3) >> 1) {
         case 2: cpu->mode = Machine; break;
