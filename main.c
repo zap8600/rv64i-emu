@@ -95,7 +95,6 @@ int main(int argc, char* argv[]) {
         // execute
         if (!cpu_execute(&cpu, inst)) {
             take_trap(&cpu, false);
-            printf("exec!\n");
             if (is_fatal(&cpu)) {
                 break;
             }
