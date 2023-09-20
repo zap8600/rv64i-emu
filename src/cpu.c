@@ -927,17 +927,18 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
         case CSR:
             switch (funct3) {
                 case ECALLBREAK:
-                    switch (cpu->regs[rs2(inst)]) {
-                        case 0x0: exec_ECALL(cpu, inst); return -1; break;
-                        case 0x1: exec_EBREAK(cpu, inst); return -1; break;
+                    int rs2a = (inst >> 20) & 0x1f;
+                    switch (rs2a) {
+                        case 0x0: exec_ECALL(cpu, inst); return 0; break;
+                        case 0x1: exec_EBREAK(cpu, inst); return 0; break;
                         case 0x2:
                             switch (funct7) {
                                 case 0x8: exec_SRET(cpu, inst); break;
                                 case 0x18: exec_MRET(cpu, inst); break;
                                 default: 
                                     fprintf(stderr, 
-                                            "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
-                                            , opcode, funct3, funct7);
+                                            "[-] ERROR-> opcode:0x%x, funct3:0x%x, rs2:0x%x, funct7:0x%x\n"
+                                            , opcode, funct3, cpu->regs[rs2(inst)], funct7);
                                     cpu->trap = IllegalInstruction;
                                     return 0;
                             } break;
