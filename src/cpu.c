@@ -102,7 +102,7 @@ void cpu_update_paging(CPU* cpu, size_t csr_addr) {
 
     cpu->page_table = csr_read(cpu, SATP) & ((1ULL << 44) - 1) * CPU_PAGE_SIZE;
 
-    uint64_t mode = csr_read(cpu, SATP) >> 60;
+    uint64_t mode = (csr_read(cpu, SATP)) >> 60;
 
     if (mode == 8) {
         cpu->enable_paging = true;
