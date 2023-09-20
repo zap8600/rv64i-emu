@@ -1,5 +1,6 @@
 #include "../includes/csr.h"
 #include <stdint.h>
+#include <stdio.h>
 
 uint64_t csr_read(CPU* cpu, uint64_t csr) {
     //return (uint64_t)(uint32_t)cpu->csr[csr];
