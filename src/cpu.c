@@ -256,8 +256,9 @@ void exec_AUIPC(CPU* cpu, uint32_t inst) {
     // AUIPC forms a 32-bit offset from the 20 upper bits 
     // of the U-immediate
     uint64_t imm = imm_U(inst);
-    cpu->regs[rd(inst)] = ((int64_t) cpu->pc + (int64_t) imm) - 4;
-    print_op("auipc\n");
+    cpu->regs[rd(inst)] = (cpu->pc + imm) - 4;
+    print_op("auipc");
+    printf("=%#-13.2lx\n", (cpu->pc + imm) - 4);
 }
 
 void exec_JAL(CPU* cpu, uint32_t inst) {
