@@ -100,7 +100,7 @@ void cpu_update_paging(CPU* cpu, size_t csr_addr) {
         return;
     }
 
-    cpu->page_table = csr_read(cpu, SATP) & (1ULL << 44) * CPU_PAGE_SIZE;
+    cpu->page_table = csr_read(cpu, SATP) & ((1ULL << 44) - 1) * CPU_PAGE_SIZE;
 
     uint64_t mode = csr_read(cpu, SATP) >> 60;
 
@@ -724,6 +724,7 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
 }
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
+    printf("its mret\n");
     cpu->pc = csr_read(cpu, MEPC);
     switch ((csr_read(cpu, MSTATUS) & 3) >> 1) {
         case 2: cpu->mode = Machine; break;
