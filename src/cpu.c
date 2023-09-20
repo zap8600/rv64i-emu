@@ -737,7 +737,7 @@ void exec_MRET(CPU* cpu, uint32_t inst) {
         case 1: cpu->mode = Supervisor; break;
         default: cpu->mode = User; break;
     }
-    if (((csr_read(cpu, MSTATUS) & 1) >> 7) == 1) {
+    if (((csr_read(cpu, MSTATUS) >> 7) & 1) == 1) {
         csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 3));
     } else {
         csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 3);
