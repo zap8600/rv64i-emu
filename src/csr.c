@@ -19,7 +19,7 @@ void csr_write(CPU* cpu, uint64_t csr, uint64_t value) {
     if (csr == SIE) {
         cpu->csr[MIE] = (cpu->csr[MIE] & !(cpu->csr[MIDELEG])) | (value & cpu->csr[MIDELEG]);
     } else if (csr == MEPC) {
-        printf("mepc: %#-13.2lx", cpu->csr[MEPC]);
+        printf("mepc: %#-13.2lx", value);
         cpu->csr[csr] = value;
     } else {
         cpu->csr[csr] = value;
