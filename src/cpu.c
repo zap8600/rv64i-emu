@@ -221,7 +221,7 @@ uint64_t imm_B(uint32_t inst) {
 }
 uint64_t imm_U(uint32_t inst) {
     // imm[31:12] = inst[31:12]
-    return (int64_t)(int32_t)(inst & 0xfffff000);
+    return (uint64_t)(int64_t)(int32_t)(inst & 0xfffff000);
 }
 uint64_t imm_J(uint32_t inst) {
     // imm[20|10:1|11|19:12] = inst[31|30:21|20|19:12]
