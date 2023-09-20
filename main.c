@@ -93,12 +93,13 @@ int main(int argc, char* argv[]) {
         // Increment the program counter
         cpu.pc += 4;
         // execute
-        if (!cpu_execute(&cpu, inst))
+        if (!cpu_execute(&cpu, inst)) {
             take_trap(&cpu, false);
             printf("exec!\n");
             if (is_fatal(&cpu)) {
                 break;
             }
+        }
 
         cpu_check_interrupt(&cpu);
         switch (cpu.intr) {
