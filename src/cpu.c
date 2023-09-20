@@ -740,10 +740,10 @@ void exec_MRET(CPU* cpu, uint32_t inst) {
     if (((csr_read(cpu, MSTATUS) >> 7) & 1) == 1) {
         csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 3));
     } else {
-        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 3);
+        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(1 << 3));
     }
     csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 7));
-    csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 3) << 11);
+    csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(0b11 << 11);
     print_op("mret\n");
 }
 
