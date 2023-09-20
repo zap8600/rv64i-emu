@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
             printf("paging off!\n");
         }
         */
-        //dump_registers(&cpu);
+        dump_registers(&cpu);
         dump_csr(&cpu);
     }
     dump_registers(&cpu);
