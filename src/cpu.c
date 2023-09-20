@@ -458,7 +458,7 @@ void exec_ADD(CPU* cpu, uint32_t inst) {
 void exec_MUL(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] =
         (uint64_t) ((int64_t)cpu->regs[rs1(inst)] * (int64_t)cpu->regs[rs2(inst)]);
-    print_op("mul=%#-13.2lx x %#-13.2lx = %#-13.2lx\n", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)], cpu->regs[rd(inst)]);
+    printf("mul=%#-13.2lx x %#-13.2lx = %#-13.2lx\n", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)], cpu->regs[rd(inst)]);
 }
 
 void exec_SUB(CPU* cpu, uint32_t inst) {
