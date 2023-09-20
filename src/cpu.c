@@ -751,6 +751,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
     int opcode = inst & 0x7f;           // opcode in bits 6..0
     int funct3 = (inst >> 12) & 0x7;    // funct3 in bits 14..12
     int funct7 = (inst >> 25) & 0x7f;   // funct7 in bits 31..25
+    int rs2a = (inst >> 20) & 0x1f;
 
     cpu->regs[0] = 0;                   // x0 hardwired to 0 at each cycle
 
@@ -927,7 +928,6 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
         case CSR:
             switch (funct3) {
                 case ECALLBREAK:
-                    int rs2a = (inst >> 20) & 0x1f;
                     switch (rs2a) {
                         case 0x0: exec_ECALL(cpu, inst); return 0; break;
                         case 0x1: exec_EBREAK(cpu, inst); return 0; break;
@@ -938,7 +938,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                                 default: 
                                     fprintf(stderr, 
                                             "[-] ERROR-> opcode:0x%x, funct3:0x%x, rs2:0x%x, funct7:0x%x\n"
-                                            , opcode, funct3, cpu->regs[rs2(inst)], funct7);
+                                            , opcode, funct3, rs2a, funct7);
                                     cpu->trap = IllegalInstruction;
                                     return 0;
                             } break;
