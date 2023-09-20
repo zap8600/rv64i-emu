@@ -109,6 +109,12 @@ int main(int argc, char* argv[]) {
         if(cpu.pc==0)
             break;
 
+        if (cpu.enable_paging) {
+            printf("paging on!\n");
+        } else {
+            printf("paging off!\n");
+        }
+
         dump_csr(&cpu);
     }
     dump_registers(&cpu);
