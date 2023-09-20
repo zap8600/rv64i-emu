@@ -49,6 +49,7 @@ uint64_t uart_load_8(UART* uart, uint64_t addr) {
             return uart->data[addr - UART_BASE];
             break;
     }
+    pthread_mutex_unlock(&(uart->data_mutex));
 }
 
 uint64_t uart_load(UART* uart, uint64_t addr, uint64_t size) {
