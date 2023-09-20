@@ -744,6 +744,7 @@ void exec_MRET(CPU* cpu, uint32_t inst) {
     }
     csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 5));
     csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 3) << 11);
+    print_op("mret\n");
 }
 
 int cpu_execute(CPU *cpu, uint32_t inst) {
