@@ -732,7 +732,7 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, MEPC);
-    switch ((csr_read(cpu, MSTATUS) & 3) >> 11) {
+    switch ((csr_read(cpu, MSTATUS) >> 11) & 3) {
         case 2: cpu->mode = Machine; break;
         case 1: cpu->mode = Supervisor; break;
         default: cpu->mode = User; break;
