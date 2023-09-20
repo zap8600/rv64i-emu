@@ -275,7 +275,7 @@ void exec_JAL(CPU* cpu, uint32_t inst) {
 void exec_JALR(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_I(inst);
     uint64_t tmp = cpu->pc;
-    cpu->pc = (cpu->regs[rs1(inst)] + (int64_t) imm) & !1;
+    cpu->pc = (cpu->regs[rs1(inst)] + (int64_t) imm) & 0xfffffffe;
     cpu->regs[rd(inst)] = tmp;
     print_op("jalr\n");
     //print_op("NEXT -> %#lx, imm:%#lx\n", cpu->pc, imm);
