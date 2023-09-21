@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <termios.h>
+#include <unistd.h>
 #include "./includes/cpu.h"
 
 struct CPU cpu;
@@ -79,7 +83,11 @@ void read_disk(CPU* cpu, char *filename)
     free(buffer);
 }
 
-void exitEmu() {
+void ExitEmu() {
+    struct termios term;
+	tcgetattr(0, &term);
+	term.c_lflag |= ICANON | ECHO;
+	tcsetattr(0, TCSANOW, &term);
     free(cpu.bus.dram.mem);
     free(cpu.bus.uart.data);
     exit(0);
@@ -96,6 +104,10 @@ int main(int argc, char* argv[]) {
     read_disk(&cpu, argv[2]);
 
     signal(SIGINT, exitEmu);
+    struct termios term;
+    tcgetattr(0, &term);
+    term.c_lflag &= ~(ICANON | ECHO); // Disable echo as well
+    tcsetattr(0, TCSANOW, &term);
 
     while (1) {
         // fetch

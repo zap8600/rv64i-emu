@@ -15,6 +15,7 @@
 
 void *uart_in(void *ptr) {
     UART* uart = (UART*)ptr;
+    /*
     int c;
     if ((c = fgetc(stdin)) != EOF) {
         pthread_mutex_lock(&(uart->data_mutex));
@@ -22,6 +23,20 @@ void *uart_in(void *ptr) {
             pthread_cond_wait(&(uart->cond), &(uart->data_mutex));
         }
         uart->data[0] = (uint8_t)c;
+        pthread_mutex_lock(&(uart->intr_mutex));
+        uart->interrupting = true;
+        pthread_mutex_unlock(&(uart->intr_mutex));
+        uart->data[UART_LSR - UART_BASE] |= UART_LSR_RX;
+        pthread_mutex_unlock(&(uart->data_mutex));
+    }
+    */
+    char c = 0;
+    if ((read(fileno(stdin), (char*)&c, 1)) > 0) {
+        pthread_mutex_lock(&(uart->data_mutex));
+        while ((uart->data[UART_LSR - UART_BASE] & UART_LSR_RX) == 1) {
+            pthread_cond_wait(&(uart->cond), &(uart->data_mutex));
+        }
+        uart->data[0] = c;
         pthread_mutex_lock(&(uart->intr_mutex));
         uart->interrupting = true;
         pthread_mutex_unlock(&(uart->intr_mutex));
