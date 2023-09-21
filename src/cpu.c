@@ -291,7 +291,7 @@ void exec_BEQ(CPU* cpu, uint32_t inst) {
     if ((int64_t) cpu->regs[rs1(inst)] == (int64_t) cpu->regs[rs2(inst)])
         cpu->pc = cpu->pc + (int64_t) imm - 4;
     print_op("beq");
-    printf("=%#-13.2lx %#-13.2lx", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)]);
+    printf("=%#-13.2lx %#-13.2lx\n", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)]);
 }
 void exec_BNE(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_B(inst);
@@ -389,7 +389,8 @@ void exec_SW(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_S(inst);
     uint64_t addr = cpu->regs[rs1(inst)] + (int64_t) imm;
     cpu_store(cpu, addr, 32, cpu->regs[rs2(inst)]);
-    print_op("sw\n");
+    print_op("sw");
+    printf("=%#-13.2lx %#-13.2lx\n", addr, cpu->regs[rs2(inst)]);
 }
 void exec_SD(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_S(inst);
