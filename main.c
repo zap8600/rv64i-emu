@@ -83,7 +83,7 @@ void read_disk(CPU* cpu, char *filename)
     free(buffer);
 }
 
-void ExitEmu() {
+void exitEmu() {
     struct termios term;
 	tcgetattr(0, &term);
 	term.c_lflag |= ICANON | ECHO;
