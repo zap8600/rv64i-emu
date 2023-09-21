@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "./includes/cpu.h"
+
+struct CPU cpu;
 
 void read_bin(CPU* cpu, char *filename)
 {
@@ -76,16 +79,22 @@ void read_disk(CPU* cpu, char *filename)
     free(buffer);
 }
 
+void exitEmu() {
+    free(cpu.bus.dram.mem);
+    exit(0);
+}
+
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         printf("Usage: %s <filename> <disk>\n", argv[0]);
         return 1;
     }
 
-    struct CPU cpu;
     cpu_init(&cpu);
     read_bin(&cpu, argv[1]);
     read_disk(&cpu, argv[2]);
+
+    signal(SIGINT, exitEmu);
 
     while (1) {
         // fetch

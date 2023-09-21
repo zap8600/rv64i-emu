@@ -39,7 +39,8 @@ void uart_init(UART* uart) {
 uint64_t uart_load_8(UART* uart, uint64_t addr) {
     pthread_mutex_lock(&(uart->data_mutex));
     switch (addr) {
-        case UART_RHR: 
+        case UART_RHR:
+            pthread_cond_broadcast(&(uart->cond));
             uart->data[UART_LSR - UART_BASE] &= !UART_LSR_RX;
             pthread_mutex_unlock(&(uart->data_mutex));
             return uart->data[UART_RHR - UART_BASE];
@@ -63,7 +64,10 @@ uint64_t uart_load(UART* uart, uint64_t addr, uint64_t size) {
 void uart_store_8(UART* uart, uint64_t addr, uint64_t value) {
     pthread_mutex_lock(&(uart->data_mutex));
     switch (addr) {
-        case UART_THR: printf("%c", (uint8_t)value); break;
+        case UART_THR:
+            printf("%c", (uint8_t)value);
+            fflush(stdout);
+            break;
         default: uart->data[addr - UART_BASE] = (uint8_t)value; break;
     }
     pthread_mutex_unlock(&(uart->data_mutex));

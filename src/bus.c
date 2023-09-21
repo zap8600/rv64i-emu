@@ -1,6 +1,7 @@
 #include "../includes/bus.h"
 
 void bus_init(BUS* bus) {
+    dram_init(&(bus->dram));
     plic_init(&(bus->plic));
     clint_init(&(bus->clint));
     uart_init(&(bus->uart));
