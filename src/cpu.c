@@ -205,7 +205,7 @@ uint64_t rs2(uint32_t inst) {
 
 uint64_t imm_I(uint32_t inst) {
     // imm[11:0] = inst[31:20]
-    return ((int64_t)(int32_t) (inst & 0xfff00000)) >> 20; // right shift as signed?
+    return ((int64_t)(int32_t) inst) >> 20; // right shift as signed?
 }
 uint64_t imm_S(uint32_t inst) {
     // imm[11:5] = inst[31:25], imm[4:0] = inst[11:7]
