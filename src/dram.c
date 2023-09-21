@@ -42,7 +42,7 @@ uint64_t dram_load(DRAM* dram, uint64_t addr, uint64_t size) {
 }
 
 void dram_store_8(DRAM* dram, uint64_t addr, uint64_t value) {
-    dram->mem[addr-DRAM_BASE] = (uint8_t) (value & 0xff);
+    dram->mem[addr-DRAM_BASE] = (uint8_t)value;
 }
 void dram_store_16(DRAM* dram, uint64_t addr, uint64_t value) {
     dram->mem[addr-DRAM_BASE] = (uint8_t) (value & 0xff);
