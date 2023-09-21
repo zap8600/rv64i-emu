@@ -10,7 +10,7 @@
 #define UART_SIZE 0x100
 
 typedef struct UART {
-    uint8_t data[UART_SIZE];
+    uint8_t *data;
     pthread_t rx_thread;
     pthread_mutex_t data_mutex;
     pthread_cond_t cond;

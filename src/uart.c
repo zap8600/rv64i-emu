@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include "../includes/uart.h"
 
@@ -33,6 +34,8 @@ void *uart_in(void *ptr) {
 }
 
 void uart_init(UART* uart) {
+    uart->data = malloc(UART_SIZE);
+    uart->data[UART_LSR - UART_BASE] |= UART_LSR_TX;
     pthread_create(&(uart->rx_thread), NULL, &uart_in, uart);
 }
 

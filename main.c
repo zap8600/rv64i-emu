@@ -81,6 +81,7 @@ void read_disk(CPU* cpu, char *filename)
 
 void exitEmu() {
     free(cpu.bus.dram.mem);
+    free(cpu.bus.uart.data);
     exit(0);
 }
 
