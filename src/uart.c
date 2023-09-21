@@ -48,7 +48,6 @@ void *uart_in(void *ptr) {
         uart->interrupting = false;
         pthread_mutex_unlock(&(uart->intr_mutex));
     }
-    return;
 }
 
 void uart_init(UART* uart) {
