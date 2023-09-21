@@ -290,7 +290,8 @@ void exec_BEQ(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_B(inst);
     if ((int64_t) cpu->regs[rs1(inst)] == (int64_t) cpu->regs[rs2(inst)])
         cpu->pc = cpu->pc + (int64_t) imm - 4;
-    print_op("beq\n");
+    print_op("beq");
+    printf("=%#-13.2lx %#-13.2lx", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)]);
 }
 void exec_BNE(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_B(inst);
@@ -740,10 +741,10 @@ void exec_MRET(CPU* cpu, uint32_t inst) {
     if (((csr_read(cpu, MSTATUS) >> 7) & 1) == 1) {
         csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 3));
     } else {
-        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(1 << 3));
+        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(1 << 3)));
     }
     csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 7));
-    csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(0b11 << 11);
+    csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(0b11 << 11)));
     print_op("mret\n");
 }
 
