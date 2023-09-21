@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define DRAM_SIZE 1024*1024*1
+#define DRAM_SIZE 1024*1024*128
 #define DRAM_BASE 0x80000000
 
 typedef struct DRAM {
