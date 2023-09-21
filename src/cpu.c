@@ -358,6 +358,7 @@ void exec_LBU(CPU* cpu, uint32_t inst) {
     uint64_t addr = cpu->regs[rs1(inst)] + (int64_t) imm;
     cpu->regs[rd(inst)] = cpu_load(cpu, addr, 8);
     print_op("lbu\n");
+    printf("=%#-13.2lx %#-13.2lx\n", addr, cpu_load(cpu, addr, 8));
 }
 void exec_LHU(CPU* cpu, uint32_t inst) {
     // load unsigned 2 byte to rd from address in rs1
