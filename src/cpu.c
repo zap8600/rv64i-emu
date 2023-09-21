@@ -721,17 +721,18 @@ void exec_AMOMAXU_D(CPU* cpu, uint32_t inst) {}
 
 void exec_SRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, SEPC);
-    switch (csr_read(cpu, SSTATUS) >> 8) {
+    switch ((csr_read(cpu, SSTATUS) >> 8) & 1) {
         case 1: cpu->mode = Supervisor; break;
         default: cpu->mode = User; break;
     }
-    if (((csr_read(cpu, SSTATUS) & 1) >> 5) == 1) {
+    if (((csr_read(cpu, SSTATUS) >> 5) & 1) == 1) {
         csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 1));
     } else {
-        csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 1);
+        csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & ~(1<< 1)));
     }
-    csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 7));
-    csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 8);
+    csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 5));
+    csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(1<< 8)));
+    //print_op("sret\n");
 }
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
@@ -1074,19 +1075,19 @@ void take_trap(CPU* cpu, bool interrupting) {
             }
             cpu->pc = (csr_read(cpu, STVEC) & !1) + vector;
         } else {
-            cpu->pc = csr_read(cpu, STVEC) & !1;
+            cpu->pc = csr_read(cpu, STVEC);
         }
-        csr_write(cpu, SEPC, exec_pc & !1);
+        csr_write(cpu, SEPC, exec_pc);
         csr_write(cpu, SCAUSE, cpu->trap);
         csr_write(cpu, STVAL, 0);
-        if (((csr_read(cpu, SSTATUS) & 1) >> 1) == 1) {
+        if (((csr_read(cpu, SSTATUS) >> 1) & 1) == 1) {
             csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 5));
         } else {
-            csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 5);
+            csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & ~(1 << 5)));
         }
-        csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 1);
+        csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) ~(1 << 1)));
         switch (prev_mode) {
-            case User: csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & 1) << 8); break;
+            case User: csr_write(cpu, SSTATUS, (csr_read(cpu, SSTATUS) & ~(1 << 8))); break;
             default: csr_write(cpu, SSTATUS, csr_read(cpu, SSTATUS) | (1 << 8)); break;
         }
     } else {
@@ -1105,13 +1106,13 @@ void take_trap(CPU* cpu, bool interrupting) {
         csr_write(cpu, MEPC, exec_pc);
         csr_write(cpu, MCAUSE, cpu->trap);
         csr_write(cpu, MTVAL, 0);
-        if (((csr_read(cpu, MSTATUS) & 1) >> 3) == 1) {
+        if (((csr_read(cpu, MSTATUS) >> 3) & 1) == 1) {
             csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 7));
         } else {
-            csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 7);
+            csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(1 << 7)));
         }
-        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 3);
-        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 3) << 11);
+        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(1 << 3)));
+        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(0b11 << 11)));
     }
 }
 

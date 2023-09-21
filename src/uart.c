@@ -30,22 +30,25 @@ void *uart_in(void *ptr) {
         pthread_mutex_unlock(&(uart->data_mutex));
     }
     */
-    char c = 0;
-    if ((read(fileno(stdin), (char*)&c, 1)) > 0) {
-        pthread_mutex_lock(&(uart->data_mutex));
-        while ((uart->data[UART_LSR - UART_BASE] & UART_LSR_RX) == 1) {
-            pthread_cond_wait(&(uart->cond), &(uart->data_mutex));
+    while(1) {
+        char c = 0;
+        if ((read(fileno(stdin), (char*)&c, 1)) > 0) {
+            pthread_mutex_lock(&(uart->data_mutex));
+            while ((uart->data[UART_LSR - UART_BASE] & UART_LSR_RX) == 1) {
+                pthread_cond_wait(&(uart->cond), &(uart->data_mutex));
+            }
+            uart->data[0] = c;
+            pthread_mutex_lock(&(uart->intr_mutex));
+            uart->interrupting = true;
+            pthread_mutex_unlock(&(uart->intr_mutex));
+            uart->data[UART_LSR - UART_BASE] |= UART_LSR_RX;
+            pthread_mutex_unlock(&(uart->data_mutex));
         }
-        uart->data[0] = c;
         pthread_mutex_lock(&(uart->intr_mutex));
-        uart->interrupting = true;
+        uart->interrupting = false;
         pthread_mutex_unlock(&(uart->intr_mutex));
-        uart->data[UART_LSR - UART_BASE] |= UART_LSR_RX;
-        pthread_mutex_unlock(&(uart->data_mutex));
     }
-    pthread_mutex_lock(&(uart->intr_mutex));
-    uart->interrupting = false;
-    pthread_mutex_unlock(&(uart->intr_mutex));
+    return -1;
 }
 
 void uart_init(UART* uart) {
@@ -55,13 +58,15 @@ void uart_init(UART* uart) {
 }
 
 uint64_t uart_load_8(UART* uart, uint64_t addr) {
+    uint8_t data;
     pthread_mutex_lock(&(uart->data_mutex));
     switch (addr) {
         case UART_RHR:
             pthread_cond_broadcast(&(uart->cond));
-            uart->data[UART_LSR - UART_BASE] &= !UART_LSR_RX;
+            uart->data[UART_LSR - UART_BASE] &= ~UART_LSR_RX;
+            data = uart->data[UART_RHR - UART_BASE];
             pthread_mutex_unlock(&(uart->data_mutex));
-            return uart->data[UART_RHR - UART_BASE];
+            return data;
             break;
         default:
             pthread_mutex_unlock(&(uart->data_mutex));
