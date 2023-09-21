@@ -1,5 +1,10 @@
-#include "./includes/dram.h"
+#include "../includes/dram.h"
 #include <stdio.h>
+#include <stdlib.h>
+
+void dram_init(DRAM* dram) {
+    dram->mem = malloc(DRAM_SIZE);
+}
 
 uint64_t dram_load_8(DRAM* dram, uint64_t addr){
     return (uint64_t) dram->mem[addr - DRAM_BASE];

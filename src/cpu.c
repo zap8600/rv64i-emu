@@ -1,9 +1,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "./includes/cpu.h"
-#include "./includes/opcodes.h"
-#include "./includes/csr.h"
+#include "../includes/cpu.h"
+#include "../includes/opcodes.h"
+#include "../includes/csr.h"
+#include "../includes/uart.h"
+#include "../includes/virtio.h"
 
 #define ANSI_YELLOW  "\x1b[33m"
 #define ANSI_BLUE    "\x1b[31m"
@@ -13,7 +15,7 @@
 
 // print operation for DEBUG
 void print_op(char* s) {
-    printf("%s%s%s", ANSI_BLUE, s, ANSI_RESET);
+    printf("%s", s); //printf("%s%s%s", ANSI_BLUE, s, ANSI_RESET);
 }
 
 void cpu_init(CPU *cpu) {
@@ -21,19 +23,170 @@ void cpu_init(CPU *cpu) {
     cpu->regs[2] = DRAM_BASE + DRAM_SIZE;   // Set stack pointer
     cpu->pc      = DRAM_BASE;               // Set program counter to the base address
     cpu->mode    = Machine;
+    cpu->enable_paging = false;
+    cpu->page_table = 0;
+    bus_init(&(cpu->bus));
 }
 
-uint32_t cpu_fetch(CPU *cpu) {
-    uint32_t inst = bus_load(&(cpu->bus), cpu->pc, 32);
-    return inst;
+void cpu_check_interrupt(CPU* cpu) {
+    switch (cpu->mode) {
+        case Machine:
+            if (((csr_read(cpu, MSTATUS) & 1) >> 3) == 0) {
+                cpu->intr = -1;
+                return;
+            }
+            break;
+        case Supervisor:
+            if(((csr_read(cpu, SSTATUS) & 1) >> 1) == 0) {
+                cpu->intr = -1;
+                return;
+            }
+            break;
+        default: ; break;
+    }
+
+    uint64_t irq;
+    if (uart_interrupting(&(cpu->bus.uart))) {
+        irq = UART_IRQ;
+    } else if (virtio_interrupting(&(cpu->bus.virtio))) {
+        virtio_disk_access(cpu);
+        irq = VIRTIO_IRQ;
+    } else {
+        irq = 0;
+    }
+
+    if (irq != 0) {
+        bus_store(&(cpu->bus), PLIC_SCLAIM, 32, irq);
+        csr_write(cpu, MIP, csr_read(cpu, MIP) | MIP_SEIP);
+    }
+
+    uint64_t pending = csr_read(cpu, MIE) & csr_read(cpu, MIP);
+    if ((pending & MIP_MEIP) != 0) {
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 11);
+        cpu->intr = MachineExternalInterrupt;
+        return;
+    }
+    if ((pending & MIP_MSIP) != 0) {
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 3);
+        cpu->intr = MachineSoftwareInterrupt;
+        return;
+    }
+    if ((pending & MIP_MTIP) != 0) {
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 7);
+        cpu->intr = MachineTimerInterrupt;
+        return;
+    }
+    if ((pending & MIP_SEIP) != 0) {
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 9);
+        cpu->intr = SupervisorExternalInterrupt;
+        return;
+    }
+    if ((pending & MIP_SSIP) != 0) {
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 1);
+        cpu->intr = SupervisorSoftwareInterrupt;
+        return;
+    }
+    if ((pending & MIP_STIP) != 0) {
+        csr_write(cpu, MIP, (csr_read(cpu, MIP) & 1) << 5);
+        cpu->intr = SupervisorTimerInterrupt;
+        return;
+    }
+    cpu->intr = -1;
+    return;
+}
+
+void cpu_update_paging(CPU* cpu, size_t csr_addr) {
+    if (csr_addr != SATP) {
+        return;
+    }
+
+    cpu->page_table = csr_read(cpu, SATP) & ((1ULL << 44) - 1) * CPU_PAGE_SIZE;
+
+    uint64_t mode = (csr_read(cpu, SATP)) >> 60;
+
+    if (mode == 8) {
+        cpu->enable_paging = true;
+    } else {
+        cpu->enable_paging = false;
+    }
+}
+
+uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
+    if (!(cpu->enable_paging)) {
+        return addr;
+    }
+
+    int64_t levels = 3;
+    uint64_t vpn[3] = {((addr & 0x1ff) >> 12), ((addr & 0x1ff) >> 21), ((addr & 0x1ff) >> 30)};
+
+    uint64_t a = cpu->page_table;
+    int64_t i = levels - 1;
+    uint64_t pte;
+    while (1) {
+        pte = bus_load(&(cpu->bus), a + vpn[i] * 8, 64);
+
+        uint64_t v = pte & 1;
+        uint64_t r = (pte & 1) >> 1;
+        uint64_t w = (pte & 1) >> 2;
+        uint64_t x = (pte & 1) >> 3;
+        if (v == 0 || r == 0 && w == 1) {
+            switch (access_type) {
+                case Instruction: cpu->trap = InstructionPageFault; return InstructionPageFault;
+                case Load: cpu->trap = LoadPageFault; return LoadPageFault;
+                case Store: cpu->trap = StoreAMOPageFault; return StoreAMOPageFault;
+            } break;
+        }
+
+        if (r == 1 || x == 1) {
+            break;
+        }
+        i -= 1;
+        uint64_t ppn = (pte & 0x0fffffffffff) >> 10;
+        a = ppn * CPU_PAGE_SIZE;
+        if (i < 0) {
+            switch (access_type) {
+                case Instruction: cpu->trap = InstructionPageFault; return InstructionPageFault;
+                case Load: cpu->trap = LoadPageFault; return LoadPageFault;
+                case Store: cpu->trap = StoreAMOPageFault; return StoreAMOPageFault;
+            } break;
+        }
+    }
+
+    uint64_t ppna[3] = {((pte & 0x1ff) >> 10), ((pte & 0x1ff) >> 19), ((pte & 0x03ffffff) >> 28)};
+    uint64_t ppn;
+
+    uint64_t offset = addr & 0xfff;
+    switch (i) {
+        case 0:
+            ppn = (pte & 0x0fffffffffff) >> 10;
+            return (ppn << 12) | offset;
+        case 1:
+            return (ppna[2] << 30) | (ppna[1] << 21) | (vpn[0] << 12) | offset;
+        case 2:
+            return (ppna[2] << 30) | (vpn[1] << 21) | (vpn[0] << 12) | offset;
+        default:
+            switch (access_type) {
+                case Instruction: cpu->trap = InstructionPageFault; return InstructionPageFault;
+                case Load: cpu->trap = LoadPageFault; return LoadPageFault;
+                case Store: cpu->trap = StoreAMOPageFault; return StoreAMOPageFault;
+            } break;
+    }
 }
 
 uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
-    return bus_load(&(cpu->bus), addr, size);
+    uint64_t p_addr = cpu_translate(cpu, addr, Load);
+    return bus_load(&(cpu->bus), p_addr, size);
 }
 
 void cpu_store(CPU* cpu, uint64_t addr, uint64_t size, uint64_t value) {
-    bus_store(&(cpu->bus), addr, size, value);
+    uint64_t p_addr = cpu_translate(cpu, addr, Store);
+    bus_store(&(cpu->bus), p_addr, size, value);
+}
+
+uint32_t cpu_fetch(CPU *cpu) {
+    uint64_t p_pc = cpu_translate(cpu, cpu->pc, Instruction);
+    uint32_t inst = bus_load(&(cpu->bus), p_pc, 32);
+    return inst;
 }
 
 //=====================================================================================
@@ -52,7 +205,7 @@ uint64_t rs2(uint32_t inst) {
 
 uint64_t imm_I(uint32_t inst) {
     // imm[11:0] = inst[31:20]
-    return ((int64_t)(int32_t) (inst & 0xfff00000)) >> 20; // right shift as signed?
+    return (int64_t)((int32_t) (inst) >> 20); // right shift as signed?
 }
 uint64_t imm_S(uint32_t inst) {
     // imm[11:5] = inst[31:25], imm[4:0] = inst[11:7]
@@ -68,7 +221,7 @@ uint64_t imm_B(uint32_t inst) {
 }
 uint64_t imm_U(uint32_t inst) {
     // imm[31:12] = inst[31:12]
-    return (int64_t)(int32_t)(inst & 0xfffff999);
+    return (uint64_t)(int64_t)(int32_t)(inst & 0xfffff000);
 }
 uint64_t imm_J(uint32_t inst) {
     // imm[20|10:1|11|19:12] = inst[31|30:21|20|19:12]
@@ -103,8 +256,9 @@ void exec_AUIPC(CPU* cpu, uint32_t inst) {
     // AUIPC forms a 32-bit offset from the 20 upper bits 
     // of the U-immediate
     uint64_t imm = imm_U(inst);
-    cpu->regs[rd(inst)] = ((int64_t) cpu->pc + (int64_t) imm) - 4;
-    print_op("auipc\n");
+    cpu->regs[rd(inst)] = (cpu->pc + imm) - 4;
+    print_op("auipc");
+    printf("=%#-13.2lx\n", (cpu->pc + imm) - 4);
 }
 
 void exec_JAL(CPU* cpu, uint32_t inst) {
@@ -124,8 +278,8 @@ void exec_JALR(CPU* cpu, uint32_t inst) {
     uint64_t tmp = cpu->pc;
     cpu->pc = (cpu->regs[rs1(inst)] + (int64_t) imm) & 0xfffffffe;
     cpu->regs[rd(inst)] = tmp;
-    /*print_op("NEXT -> %#lx, imm:%#lx\n", cpu->pc, imm);*/
     print_op("jalr\n");
+    //print_op("NEXT -> %#lx, imm:%#lx\n", cpu->pc, imm);
     if (ADDR_MISALIGNED(cpu->pc)) {
         fprintf(stderr, "JAL pc address misalligned");
         exit(0);
@@ -136,7 +290,8 @@ void exec_BEQ(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_B(inst);
     if ((int64_t) cpu->regs[rs1(inst)] == (int64_t) cpu->regs[rs2(inst)])
         cpu->pc = cpu->pc + (int64_t) imm - 4;
-    print_op("beq\n");
+    print_op("beq");
+    printf("=%#-13.2lx %#-13.2lx\n", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)]);
 }
 void exec_BNE(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_B(inst);
@@ -203,6 +358,7 @@ void exec_LBU(CPU* cpu, uint32_t inst) {
     uint64_t addr = cpu->regs[rs1(inst)] + (int64_t) imm;
     cpu->regs[rd(inst)] = cpu_load(cpu, addr, 8);
     print_op("lbu\n");
+    printf("=%#-13.2lx %#-13.2lx\n", addr, cpu_load(cpu, addr, 8));
 }
 void exec_LHU(CPU* cpu, uint32_t inst) {
     // load unsigned 2 byte to rd from address in rs1
@@ -234,7 +390,8 @@ void exec_SW(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_S(inst);
     uint64_t addr = cpu->regs[rs1(inst)] + (int64_t) imm;
     cpu_store(cpu, addr, 32, cpu->regs[rs2(inst)]);
-    print_op("sw\n");
+    print_op("sw");
+    printf("=%#-13.2lx %#-13.2lx\n", addr, cpu->regs[rs2(inst)]);
 }
 void exec_SD(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_S(inst);
@@ -302,6 +459,13 @@ void exec_ADD(CPU* cpu, uint32_t inst) {
     print_op("add\n");
 }
 
+void exec_MUL(CPU* cpu, uint32_t inst) {
+    cpu->regs[rd(inst)] =
+        (uint64_t) ((int64_t)cpu->regs[rs1(inst)] * (int64_t)cpu->regs[rs2(inst)]);
+    print_op("mul");
+    printf("=%#-13.2lx * %#-13.2lx = %#-13.2lx\n", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)], cpu->regs[rd(inst)]);
+}
+
 void exec_SUB(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] =
         (uint64_t) ((int64_t)cpu->regs[rs1(inst)] - (int64_t)cpu->regs[rs2(inst)]);
@@ -353,17 +517,18 @@ void exec_FENCE(CPU* cpu, uint32_t inst) {
     print_op("fence\n");
 }
 
-void exec_ECALL(CPU* cpu, uint32_t inst) {}
-void exec_EBREAK(CPU* cpu, uint32_t inst) {}
-
-void exec_ECALLBREAK(CPU* cpu, uint32_t inst) {
-    if (imm_I(inst) == 0x0)
-        exec_ECALL(cpu, inst);
-    if (imm_I(inst) == 0x1)
-        exec_EBREAK(cpu, inst);
-    print_op("ecallbreak\n");
+void exec_ECALL(CPU* cpu, uint32_t inst) {
+    switch(cpu->mode) {
+        case User: cpu->trap = EnvironmentCallFromUMode;
+        case Supervisor: cpu->trap = EnvironmentCallFromSMode;
+        case Machine: cpu->trap = EnvironmentCallFromMMode;
+    }
+    print_op("ecall\n");
 }
-
+void exec_EBREAK(CPU* cpu, uint32_t inst) {
+    cpu->trap = Breakpoint;
+    print_op("ebreak\n");
+}
 
 void exec_ADDIW(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_I(inst);
@@ -435,26 +600,37 @@ void exec_REMUW(CPU* cpu, uint32_t inst) {
 void exec_CSRRW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = csr_read(cpu, csr(inst));
     csr_write(cpu, csr(inst), cpu->regs[rs1(inst)]);
+    cpu_update_paging(cpu, csr(inst));
     print_op("csrrw\n");
 }
 void exec_CSRRS(CPU* cpu, uint32_t inst) {
+    cpu->regs[rd(inst)] = cpu->csr[csr(inst)];
     csr_write(cpu, csr(inst), cpu->csr[csr(inst)] | cpu->regs[rs1(inst)]);
+    cpu_update_paging(cpu, csr(inst));
     print_op("csrrs\n");
 }
 void exec_CSRRC(CPU* cpu, uint32_t inst) {
+    cpu->regs[rd(inst)] = cpu->csr[csr(inst)];
     csr_write(cpu, csr(inst), cpu->csr[csr(inst)] & !(cpu->regs[rs1(inst)]) );
+    cpu_update_paging(cpu, csr(inst));
     print_op("csrrc\n");
 }
 void exec_CSRRWI(CPU* cpu, uint32_t inst) {
+    cpu->regs[rd(inst)] = cpu->csr[csr(inst)];
     csr_write(cpu, csr(inst), rs1(inst));
+    cpu_update_paging(cpu, csr(inst));
     print_op("csrrwi\n");
 }
 void exec_CSRRSI(CPU* cpu, uint32_t inst) {
+    cpu->regs[rd(inst)] = cpu->csr[csr(inst)];
     csr_write(cpu, csr(inst), cpu->csr[csr(inst)] | rs1(inst));
+    cpu_update_paging(cpu, csr(inst));
     print_op("csrrsi\n");
 }
 void exec_CSRRCI(CPU* cpu, uint32_t inst) {
+    cpu->regs[rd(inst)] = cpu->csr[csr(inst)];
     csr_write(cpu, csr(inst), cpu->csr[csr(inst)] & !rs1(inst));
+    cpu_update_paging(cpu, csr(inst));
     print_op("csrrci\n");
 }
 
@@ -521,21 +697,21 @@ void exec_AMOXOR_D(CPU* cpu, uint32_t inst) {
     uint32_t res = tmp ^ (uint32_t)cpu->regs[rs2(inst)];
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, res);
-    print_op("amoxor.w\n");
+    print_op("amoxor.d\n");
 } 
 void exec_AMOAND_D(CPU* cpu, uint32_t inst) {
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     uint32_t res = tmp & (uint32_t)cpu->regs[rs2(inst)];
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, res);
-    print_op("amoand.w\n");
+    print_op("amoand.d\n");
 } 
 void exec_AMOOR_D(CPU* cpu, uint32_t inst) {
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     uint32_t res = tmp | (uint32_t)cpu->regs[rs2(inst)];
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, res);
-    print_op("amoor.w\n");
+    print_op("amoor.d\n");
 } 
 void exec_AMOMIN_D(CPU* cpu, uint32_t inst) {} 
 void exec_AMOMAX_D(CPU* cpu, uint32_t inst) {} 
@@ -559,30 +735,32 @@ void exec_SRET(CPU* cpu, uint32_t inst) {
 
 void exec_MRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, MEPC);
-    switch ((csr_read(cpu, MSTATUS) & 3) >> 1) {
+    switch ((csr_read(cpu, MSTATUS) >> 11) & 3) {
         case 2: cpu->mode = Machine; break;
         case 1: cpu->mode = Supervisor; break;
         default: cpu->mode = User; break;
     }
-    if (((csr_read(cpu, MSTATUS) & 1) >> 7) == 1) {
+    if (((csr_read(cpu, MSTATUS) >> 7) & 1) == 1) {
         csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 3));
     } else {
-        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 3);
+        csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(1 << 3)));
     }
-    csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 5));
-    csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 3) << 11);
+    csr_write(cpu, MSTATUS, csr_read(cpu, MSTATUS) | (1 << 7));
+    csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & ~(0b11 << 11)));
+    print_op("mret\n");
 }
 
 int cpu_execute(CPU *cpu, uint32_t inst) {
     int opcode = inst & 0x7f;           // opcode in bits 6..0
     int funct3 = (inst >> 12) & 0x7;    // funct3 in bits 14..12
     int funct7 = (inst >> 25) & 0x7f;   // funct7 in bits 31..25
+    int rs2a = (inst >> 20) & 0x1f;
 
     cpu->regs[0] = 0;                   // x0 hardwired to 0 at each cycle
 
-    /*printf("%s\n%#.8lx -> Inst: %#.8x <OpCode: %#.2x, funct3:%#x, funct7:%#x> %s",*/
-            /*ANSI_YELLOW, cpu->pc-4, inst, opcode, funct3, funct7, ANSI_RESET); // DEBUG*/
-    printf("%s\n%#.8lx -> %s", ANSI_YELLOW, cpu->pc-4, ANSI_RESET); // DEBUG
+    /*printf("%s\n%#.8lx -> Inst: %#.8x <OpCode: %#.2x, funct3:%#x, funct7:%#x> %s\n",
+            ANSI_YELLOW, cpu->pc-4, inst, opcode, funct3, funct7, ANSI_RESET); // DEBUG*/
+    printf("\n%#.8lx -> ", cpu->pc-4); //printf("%s\n%#.8lx -> %s", ANSI_YELLOW, cpu->pc-4, ANSI_RESET); // DEBUG
 
     switch (opcode) {
         case LUI:   exec_LUI(cpu, inst); break;
@@ -599,7 +777,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case BGE:   exec_BGE(cpu, inst); break;
                 case BLTU:  exec_BLTU(cpu, inst); break;
                 case BGEU:  exec_BGEU(cpu, inst); break;
-                default: cpu->trap = IllegalInstruction; return 0;
+                default: 
+                    fprintf(stderr, 
+                        "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                        , opcode, funct3, funct7);
+                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    return 0;
             } break;
 
         case LOAD:
@@ -611,7 +794,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case LBU :  exec_LBU(cpu, inst); break; 
                 case LHU :  exec_LHU(cpu, inst); break; 
                 case LWU :  exec_LWU(cpu, inst); break; 
-                default: cpu->trap = IllegalInstruction; return 0;
+                default:
+                    fprintf(stderr, 
+                        "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                        , opcode, funct3, funct7);
+                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    return 0;
             } break;
 
         case S_TYPE:
@@ -620,7 +808,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case SH  :  exec_SH(cpu, inst); break;  
                 case SW  :  exec_SW(cpu, inst); break;  
                 case SD  :  exec_SD(cpu, inst); break;  
-                default: cpu->trap = IllegalInstruction; return 0;
+                default:
+                    fprintf(stderr, 
+                        "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                        , opcode, funct3, funct7);
+                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    return 0;
             } break;
 
         case I_TYPE:  
@@ -634,7 +827,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     switch (funct7) {
                         case SRLI:  exec_SRLI(cpu, inst); break;
                         case SRAI:  exec_SRAI(cpu, inst); break;
-                        default: cpu->trap = IllegalInstruction; return 0;
+                        default:
+                            fprintf(stderr, 
+                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                , opcode, funct3, funct7);
+                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            return 0;
                     } break;
                 case ORI:   exec_ORI(cpu, inst); break;
                 case ANDI:  exec_ANDI(cpu, inst); break;
@@ -650,9 +848,15 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
             switch (funct3) {
                 case ADDSUB:
                     switch (funct7) {
-                        case ADD: exec_ADD(cpu, inst);
-                        case SUB: exec_ADD(cpu, inst);
-                        default: cpu->trap = IllegalInstruction; return 0;
+                        case ADD: exec_ADD(cpu, inst); break;
+                        case SUB: exec_ADD(cpu, inst); break;
+                        case MUL: exec_MUL(cpu, inst); break;
+                        default:
+                            fprintf(stderr, 
+                                "R-TYPE [-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                , opcode, funct3, funct7);
+                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            return 0;
                     } break;
                 case SLL:  exec_SLL(cpu, inst); break;
                 case SLT:  exec_SLT(cpu, inst); break;
@@ -662,7 +866,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     switch (funct7) {
                         case SRL:  exec_SRL(cpu, inst); break;
                         case SRA:  exec_SRA(cpu, inst); break;
-                        default: cpu->trap = IllegalInstruction; return 0;
+                        default:
+                            fprintf(stderr, 
+                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                , opcode, funct3, funct7);
+                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            return 0;
                     }
                 case OR:   exec_OR(cpu, inst); break;
                 case AND:  exec_AND(cpu, inst); break;
@@ -684,7 +893,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     switch (funct7) {
                         case SRLIW: exec_SRLIW(cpu, inst); break;
                         case SRAIW: exec_SRLIW(cpu, inst); break;
-                        default: cpu->trap = IllegalInstruction; return 0;
+                        default:
+                            fprintf(stderr, 
+                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                , opcode, funct3, funct7);
+                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            return 0;
                     } break;
             } break;
 
@@ -706,21 +920,38 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     } break;
                 case REMW:  exec_REMW(cpu, inst); break;
                 case REMUW: exec_REMUW(cpu, inst); break;
-                default: cpu->trap = IllegalInstruction; return 0;
+                default:
+                    fprintf(stderr, 
+                        "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                        , opcode, funct3, funct7);
+                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    return 0;
             } break;
 
         case CSR:
             switch (funct3) {
-                /*
                 case ECALLBREAK:
-                    switch (cpu->regs[rs2(inst)]) {
+                    switch (rs2a) {
+                        case 0x0: exec_ECALL(cpu, inst); return 0; break;
+                        case 0x1: exec_EBREAK(cpu, inst); return 0; break;
                         case 0x2:
                             switch (funct7) {
                                 case 0x8: exec_SRET(cpu, inst); break;
-                                //case 0x18: exec_MRET(cpu, inst); break;
+                                case 0x18: exec_MRET(cpu, inst); break;
+                                default: 
+                                    fprintf(stderr, 
+                                            "[-] ERROR-> opcode:0x%x, funct3:0x%x, rs2:0x%x, funct7:0x%x\n"
+                                            , opcode, funct3, rs2a, funct7);
+                                    cpu->trap = IllegalInstruction;
+                                    return 0;
                             } break;
+                        default: 
+                            fprintf(stderr, 
+                                    "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
+                                    , opcode, funct3, funct7);
+                            cpu->trap = IllegalInstruction;
+                            return 0;
                     } break;
-                */
                 case CSRRW  :  exec_CSRRW(cpu, inst); break;  
                 case CSRRS  :  exec_CSRRS(cpu, inst); break;  
                 case CSRRC  :  exec_CSRRC(cpu, inst); break;  
@@ -820,15 +1051,30 @@ void dump_csr(CPU* cpu) {
     printf("   mstatus: %#-13.2lx  ", csr_read(cpu, MSTATUS));
     printf("   mtvec: %#-13.2lx  ", csr_read(cpu, MTVEC));
     printf("   mepc: %#-13.2lx  ", csr_read(cpu, MEPC));
-    printf("   mcause: %#-13.2lx  ", csr_read(cpu, MCAUSE));
+    printf("   mcause: %#-13.2lx\n", csr_read(cpu, MCAUSE));
 }
 
-void take_trap(CPU* cpu) {
+void take_trap(CPU* cpu, bool interrupting) {
     uint64_t exec_pc = cpu->pc - 4;
     Mode prev_mode = cpu->mode;
+
+    if (interrupting) {
+        cpu->trap = (1ULL << 63) | cpu->trap;
+    }
+
     if ((prev_mode <= Supervisor) && (csr_read(cpu, MEDELEG) >> (uint32_t)cpu->trap) != 0) {
         cpu->mode = Supervisor;
-        cpu->pc = csr_read(cpu, STVEC) & !1;
+
+        if (interrupting) {
+            uint64_t vector;
+            switch (csr_read(cpu, STVEC) & 1) {
+                case 1: vector = 4 * cpu->trap; break;
+                default: vector = 0; break;
+            }
+            cpu->pc = (csr_read(cpu, STVEC) & !1) + vector;
+        } else {
+            cpu->pc = csr_read(cpu, STVEC) & !1;
+        }
         csr_write(cpu, SEPC, exec_pc & !1);
         csr_write(cpu, SCAUSE, cpu->trap);
         csr_write(cpu, STVAL, 0);
@@ -844,7 +1090,17 @@ void take_trap(CPU* cpu) {
         }
     } else {
         cpu->mode = Machine;
-        cpu->pc = csr_read(cpu, MTVEC);
+
+        if (interrupting) {
+            uint64_t vector;
+            switch (csr_read(cpu, MTVEC) & 1) {
+                case 1: vector = 4 * cpu->trap; break;
+                default: vector = 0; break;
+            }
+            cpu->pc = (csr_read(cpu, MTVEC) & !1) + vector;
+        } else {
+            cpu->pc = csr_read(cpu, MTVEC);
+        }
         csr_write(cpu, MEPC, exec_pc);
         csr_write(cpu, MCAUSE, cpu->trap);
         csr_write(cpu, MTVAL, 0);
@@ -856,4 +1112,50 @@ void take_trap(CPU* cpu) {
         csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 1) << 3);
         csr_write(cpu, MSTATUS, (csr_read(cpu, MSTATUS) & 3) << 11);
     }
+}
+
+bool is_fatal(CPU* cpu) {
+    switch (cpu->trap) {
+        case InstructionAddressMisaligned: return true; break;
+        case InstructionAccessFault: return true; break;
+        case LoadAccessFault: return true; break;
+        case StoreAMOAddressMisaligned: return true; break;
+        case StoreAMOAccessFault: return true; break;
+        default: return false; break;
+    }
+}
+
+void virtio_disk_access(CPU* cpu) {
+    uint64_t desc_addr = virtio_desc_addr(&(cpu->bus.virtio));
+    uint64_t avail_addr = virtio_desc_addr(&(cpu->bus.virtio)) + 0x40;
+    uint64_t used_addr = virtio_desc_addr(&(cpu->bus.virtio)) + 4096;
+
+    uint64_t offset = bus_load(&(cpu->bus), avail_addr + 1, 16);
+    uint64_t index = bus_load(&(cpu->bus), avail_addr + (offset % DESC_NUM) + 2, 16);
+
+    uint64_t desc_addr0 = desc_addr + VRING_DESC_SIZE * index;
+    uint64_t addr0 = bus_load(&(cpu->bus), desc_addr0, 64);
+    uint64_t next0 = bus_load(&(cpu->bus), desc_addr0 + 14, 64);
+
+    uint64_t desc_addr1 = desc_addr + VRING_DESC_SIZE * next0;
+    uint64_t addr1 = bus_load(&(cpu->bus), desc_addr0, 64);
+    uint64_t len1 = bus_load(&(cpu->bus), desc_addr1 + 8, 32);
+    uint64_t flags1 = bus_load(&(cpu->bus), desc_addr1 + 12, 16);
+
+    uint64_t blk_sector = bus_load(&(cpu->bus), addr0 + 8, 64);
+
+    if ((flags1 & 2) == 0) {
+        for (uint64_t i = 0; i < len1; i++) {
+            uint64_t data = bus_load(&(cpu->bus), addr1 + i, 8);
+            virtio_write_disk(&(cpu->bus.virtio), blk_sector * 512 + i, data);
+        }
+    } else {
+        for (uint64_t i = 0; i < len1; i++) {
+            uint64_t data = virtio_read_disk(&(cpu->bus.virtio), blk_sector * 512 + 1);
+            bus_store(&(cpu->bus), addr1 + i, 8, data);
+        }
+    }
+
+    uint64_t new_id = virtio_get_new_id(&(cpu->bus.virtio));
+    bus_store(&(cpu->bus), used_addr + 2, 16, new_id % 8);
 }
