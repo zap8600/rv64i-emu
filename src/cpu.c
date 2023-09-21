@@ -175,11 +175,13 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
 
 uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
     uint64_t p_addr = cpu_translate(cpu, addr, Load);
+    printf("load=%#-13.2lx %#-13.2lx\n", p_addr, size);
     return bus_load(&(cpu->bus), p_addr, size);
 }
 
 void cpu_store(CPU* cpu, uint64_t addr, uint64_t size, uint64_t value) {
     uint64_t p_addr = cpu_translate(cpu, addr, Store);
+    printf("store=%#-13.2lx %#-13.2lx\n", p_addr, size, value);
     bus_store(&(cpu->bus), p_addr, size, value);
 }
 
@@ -358,7 +360,6 @@ void exec_LBU(CPU* cpu, uint32_t inst) {
     uint64_t addr = cpu->regs[rs1(inst)] + (int64_t) imm;
     cpu->regs[rd(inst)] = cpu_load(cpu, addr, 8);
     print_op("lbu\n");
-    printf("=%#-13.2lx %#-13.2lx\n", addr, cpu_load(cpu, addr, 8));
 }
 void exec_LHU(CPU* cpu, uint32_t inst) {
     // load unsigned 2 byte to rd from address in rs1
