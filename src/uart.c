@@ -87,8 +87,10 @@ void uart_store_8(UART* uart, uint64_t addr, uint64_t value) {
     pthread_mutex_lock(&(uart->data_mutex));
     switch (addr) {
         case UART_THR:
-            printf("%c", (uint8_t)value);
-            fflush(stdout);
+            //printf("%c", (uint8_t)value);
+            //fflush(stdout);
+            fprintf(stderr, "%c", (uint8_t)value); // for debug so that reg & csr go to log
+            fflush(stderr); // and uart out goes to terminal
             break;
         default: uart->data[addr - UART_BASE] = (uint8_t)value; break;
     }

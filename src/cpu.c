@@ -292,7 +292,7 @@ void exec_BEQ(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_B(inst);
     if ((int64_t) cpu->regs[rs1(inst)] == (int64_t) cpu->regs[rs2(inst)])
         cpu->pc = cpu->pc + (int64_t) imm - 4;
-    print_op("beq");
+    print_op("beq\n");
     //printf("=%#-13.2lx %#-13.2lx\n", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)]);
 }
 void exec_BNE(CPU* cpu, uint32_t inst) {
