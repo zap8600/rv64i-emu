@@ -174,6 +174,9 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
 }
 
 uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
+    if(cpu->enable_paging) {
+        printf("paging!");
+    }
     uint64_t p_addr = cpu_translate(cpu, addr, Load);
     //printf("load=%lx %lx %lx\n", p_addr, size, bus_load(&(cpu->bus), p_addr, size));
     return bus_load(&(cpu->bus), p_addr, size);
