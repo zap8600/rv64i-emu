@@ -174,9 +174,6 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
 }
 
 uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
-    if(cpu->enable_paging) {
-        printf("paging!");
-    }
     uint64_t p_addr = cpu_translate(cpu, addr, Load);
     printf("load=%lx %lx %lx\n", p_addr, size, bus_load(&(cpu->bus), p_addr, size));
     return bus_load(&(cpu->bus), p_addr, size);
@@ -184,7 +181,7 @@ uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
 
 void cpu_store(CPU* cpu, uint64_t addr, uint64_t size, uint64_t value) {
     uint64_t p_addr = cpu_translate(cpu, addr, Store);
-    //printf("store=%#-13.2lx %#-13.2lx %#-13.2lx\n", p_addr, size, value);
+    printf("store=%#-13.2lx %#-13.2lx %#-13.2lx\n", p_addr, size, value);
     bus_store(&(cpu->bus), p_addr, size, value);
 }
 
@@ -759,6 +756,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
     int opcode = inst & 0x7f;           // opcode in bits 6..0
     int funct3 = (inst >> 12) & 0x7;    // funct3 in bits 14..12
     int funct7 = (inst >> 25) & 0x7f;   // funct7 in bits 31..25
+    int funct5 = (funct7 >> 2) & 0b1111100;
     int rs2a = (inst >> 20) & 0x1f;
 
     cpu->regs[0] = 0;                   // x0 hardwired to 0 at each cycle
@@ -974,7 +972,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
         case AMO:
             switch(funct3) {
                 case AMO_W:
-                    switch (funct7 >> 2) {
+                    switch (funct5) {
                         case LR_W      :  exec_LR_W(cpu, inst); break;  
                         case SC_W      :  exec_SC_W(cpu, inst); break;  
                         case AMOSWAP_W :  exec_AMOSWAP_W(cpu, inst); break;  
@@ -988,13 +986,13 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                         case AMOMAXU_W :  exec_AMOMAXU_W(cpu, inst); break;
                         default:
                             fprintf(stderr, 
-                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
-                                , opcode, funct3, funct7);
+                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct5:0x%x\n"
+                                , opcode, funct3, funct5);
                             cpu->trap = IllegalInstruction;
                             return 0;
                     } break;
                 case AMO_D:
-                    switch (funct7 >> 2) {
+                    switch (funct5) {
                         case LR_D      :  exec_LR_D(cpu, inst); break;  
                         case SC_D      :  exec_SC_D(cpu, inst); break;  
                         case AMOSWAP_D :  exec_AMOSWAP_D(cpu, inst); break;  
@@ -1008,8 +1006,8 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                         case AMOMAXU_D :  exec_AMOMAXU_D(cpu, inst); break;
                         default:
                             fprintf(stderr, 
-                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
-                                , opcode, funct3, funct7);
+                                "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct5:0x%x\n"
+                                , opcode, funct3, funct5);
                             cpu->trap = IllegalInstruction;
                             return 0;
                     } break;
