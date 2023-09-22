@@ -262,7 +262,7 @@ void exec_AUIPC(CPU* cpu, uint32_t inst) {
     // of the U-immediate
     uint64_t imm = imm_U(inst);
     cpu->regs[rd(inst)] = (cpu->pc + imm) - 4;
-    print_op("auipc");
+    print_op("auipc\n");
     //printf("=%#-13.2lx\n", (cpu->pc + imm) - 4);
 }
 
