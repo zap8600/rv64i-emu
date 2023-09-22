@@ -53,6 +53,7 @@ void *uart_in(void *ptr) {
 void uart_init(UART* uart) {
     uart->data = malloc(UART_SIZE);
     uart->data[UART_LSR - UART_BASE] |= UART_LSR_TX;
+    uart->interrupting = false;
     pthread_create(&(uart->rx_thread), NULL, &uart_in, uart);
 }
 
