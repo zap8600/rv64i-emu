@@ -852,7 +852,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case ADDSUB:
                     switch (funct7) {
                         case ADD: exec_ADD(cpu, inst); break;
-                        case SUB: exec_ADD(cpu, inst); break;
+                        case SUB: exec_SUB(cpu, inst); break;
                         case MUL: exec_MUL(cpu, inst); break;
                         default:
                             fprintf(stderr, 
