@@ -175,13 +175,13 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
 
 uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
     uint64_t p_addr = cpu_translate(cpu, addr, Load);
-    //printf("load=%lx %lx %lx\n", p_addr, size, bus_load(&(cpu->bus), p_addr, size));
+    printf("load=%lx %lx %lx\n", p_addr, size, bus_load(&(cpu->bus), p_addr, size));
     return bus_load(&(cpu->bus), p_addr, size);
 }
 
 void cpu_store(CPU* cpu, uint64_t addr, uint64_t size, uint64_t value) {
     uint64_t p_addr = cpu_translate(cpu, addr, Store);
-    //printf("store=%#-13.2lx %#-13.2lx %#-13.2lx\n", p_addr, size, value);
+    printf("store=%#-13.2lx %#-13.2lx %#-13.2lx\n", p_addr, size, value);
     bus_store(&(cpu->bus), p_addr, size, value);
 }
 
@@ -637,25 +637,27 @@ void exec_CSRRCI(CPU* cpu, uint32_t inst) {
 }
 
 // AMO_W
-void exec_LR_W(CPU* cpu, uint32_t inst) {}  
-void exec_SC_W(CPU* cpu, uint32_t inst) {}  
+void exec_LR_W(CPU* cpu, uint32_t inst) {}
+void exec_SC_W(CPU* cpu, uint32_t inst) {}
 void exec_AMOSWAP_W(CPU* cpu, uint32_t inst) {
     // int funct7 = (inst >> 25) & 0x7f;
     // printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
-    cpu->regs[rd(inst)] = tmp;
+    //cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, cpu->regs[rs2(inst)]);
+    cpu->regs[rd(inst)] = tmp;
     print_op("amoswap.w\n");
-}  
+}
 void exec_AMOADD_W(CPU* cpu, uint32_t inst) {
     // int funct7 = (inst >> 25) & 0x7f;
     // printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     uint32_t res = tmp + (uint32_t)cpu->regs[rs2(inst)];
-    cpu->regs[rd(inst)] = tmp;
+    //cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, res);
+    cpu->regs[rd(inst)] = tmp;
     print_op("amoadd.w\n");
-} 
+}
 void exec_AMOXOR_W(CPU* cpu, uint32_t inst) {
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     uint32_t res = tmp ^ (uint32_t)cpu->regs[rs2(inst)];
@@ -676,57 +678,65 @@ void exec_AMOOR_W(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, res);
     print_op("amoor.w\n");
-} 
-void exec_AMOMIN_W(CPU* cpu, uint32_t inst) {} 
-void exec_AMOMAX_W(CPU* cpu, uint32_t inst) {} 
-void exec_AMOMINU_W(CPU* cpu, uint32_t inst) {} 
-void exec_AMOMAXU_W(CPU* cpu, uint32_t inst) {} 
+}
+
+void exec_AMOMIN_W(CPU* cpu, uint32_t inst) {}
+void exec_AMOMAX_W(CPU* cpu, uint32_t inst) {}
+void exec_AMOMINU_W(CPU* cpu, uint32_t inst) {}
+void exec_AMOMAXU_W(CPU* cpu, uint32_t inst) {}
 
 // AMO_D TODO
-void exec_LR_D(CPU* cpu, uint32_t inst) {}  
-void exec_SC_D(CPU* cpu, uint32_t inst) {}  
+void exec_LR_D(CPU* cpu, uint32_t inst) {}
+void exec_SC_D(CPU* cpu, uint32_t inst) {}
 void exec_AMOSWAP_D(CPU* cpu, uint32_t inst) {
     // int funct7 = (inst >> 25) & 0x7f;
     // printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 64);
-    cpu->regs[rd(inst)] = tmp;
+    //cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 64, cpu->regs[rs2(inst)]);
+    cpu->regs[rd(inst)] = tmp;
     print_op("amoswap.d\n");
 }
+
 void exec_AMOADD_D(CPU* cpu, uint32_t inst) {
     // int funct7 = (inst >> 25) & 0x7f;
     // printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 64);
     uint32_t res = tmp + (uint32_t)cpu->regs[rs2(inst)];
-    cpu->regs[rd(inst)] = tmp;
+    //cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 64, res);
+    cpu->regs[rd(inst)] = tmp;
     print_op("amoadd.d\n");
-} 
+}
+
 void exec_AMOXOR_D(CPU* cpu, uint32_t inst) {
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     uint32_t res = tmp ^ (uint32_t)cpu->regs[rs2(inst)];
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, res);
     print_op("amoxor.d\n");
-} 
+}
+
 void exec_AMOAND_D(CPU* cpu, uint32_t inst) {
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     uint32_t res = tmp & (uint32_t)cpu->regs[rs2(inst)];
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, res);
     print_op("amoand.d\n");
-} 
+}
+
 void exec_AMOOR_D(CPU* cpu, uint32_t inst) {
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     uint32_t res = tmp | (uint32_t)cpu->regs[rs2(inst)];
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, res);
     print_op("amoor.d\n");
-} 
-void exec_AMOMIN_D(CPU* cpu, uint32_t inst) {} 
-void exec_AMOMAX_D(CPU* cpu, uint32_t inst) {} 
-void exec_AMOMINU_D(CPU* cpu, uint32_t inst) {} 
-void exec_AMOMAXU_D(CPU* cpu, uint32_t inst) {} 
+}
+
+void exec_AMOMIN_D(CPU* cpu, uint32_t inst) {}
+void exec_AMOMAX_D(CPU* cpu, uint32_t inst) {}
+void exec_AMOMINU_D(CPU* cpu, uint32_t inst) {}
+void exec_AMOMAXU_D(CPU* cpu, uint32_t inst) {}
 
 void exec_SRET(CPU* cpu, uint32_t inst) {
     cpu->pc = csr_read(cpu, SEPC);
