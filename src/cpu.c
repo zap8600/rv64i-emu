@@ -640,16 +640,16 @@ void exec_CSRRCI(CPU* cpu, uint32_t inst) {
 void exec_LR_W(CPU* cpu, uint32_t inst) {}  
 void exec_SC_W(CPU* cpu, uint32_t inst) {}  
 void exec_AMOSWAP_W(CPU* cpu, uint32_t inst) {
-    int funct7 = (inst >> 25) & 0x7f;
-    printf("funct5=%#.8x\n", (funct7 >> 2));
+    // int funct7 = (inst >> 25) & 0x7f;
+    // printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, cpu->regs[rs2(inst)]);
     print_op("amoswap.w\n");
 }  
 void exec_AMOADD_W(CPU* cpu, uint32_t inst) {
-    int funct7 = (inst >> 25) & 0x7f;
-    printf("funct5=%#.8x\n", (funct7 >> 2));
+    // int funct7 = (inst >> 25) & 0x7f;
+    // printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     uint32_t res = tmp + (uint32_t)cpu->regs[rs2(inst)];
     cpu->regs[rd(inst)] = tmp;
@@ -686,16 +686,16 @@ void exec_AMOMAXU_W(CPU* cpu, uint32_t inst) {}
 void exec_LR_D(CPU* cpu, uint32_t inst) {}  
 void exec_SC_D(CPU* cpu, uint32_t inst) {}  
 void exec_AMOSWAP_D(CPU* cpu, uint32_t inst) {
-    int funct7 = (inst >> 25) & 0x7f;
-    printf("funct5=%#.8x\n", (funct7 >> 2));
+    // int funct7 = (inst >> 25) & 0x7f;
+    // printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 64);
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 64, cpu->regs[rs2(inst)]);
     print_op("amoswap.d\n");
 }
 void exec_AMOADD_D(CPU* cpu, uint32_t inst) {
-    int funct7 = (inst >> 25) & 0x7f;
-    printf("funct5=%#.8x\n", (funct7 >> 2));
+    // int funct7 = (inst >> 25) & 0x7f;
+    // printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 64);
     uint32_t res = tmp + (uint32_t)cpu->regs[rs2(inst)];
     cpu->regs[rd(inst)] = tmp;
@@ -765,7 +765,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
     int opcode = inst & 0x7f;           // opcode in bits 6..0
     int funct3 = (inst >> 12) & 0x7;    // funct3 in bits 14..12
     int funct7 = (inst >> 25) & 0x7f;   // funct7 in bits 31..25
-    int funct5 = (funct7 >> 2) & 0b1111100;
+    int funct5 = funct7 >> 2;
     int rs2a = (inst >> 20) & 0x1f;
 
     cpu->regs[0] = 0;                   // x0 hardwired to 0 at each cycle
