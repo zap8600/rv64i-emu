@@ -973,7 +973,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
         case AMO:
             switch(funct3) {
                 case AMO_W:
-                    switch (funct5) {
+                    switch (funct7 >> 2) {
                         case LR_W      :  exec_LR_W(cpu, inst); break;  
                         case SC_W      :  exec_SC_W(cpu, inst); break;  
                         case AMOSWAP_W :  exec_AMOSWAP_W(cpu, inst); break;  
@@ -988,12 +988,12 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                         default:
                             fprintf(stderr, 
                                 "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct5:0x%x\n"
-                                , opcode, funct3, funct5);
+                                , opcode, funct3, (funct7 >> 2));
                             cpu->trap = IllegalInstruction;
                             return 0;
                     } break;
                 case AMO_D:
-                    switch (funct5) {
+                    switch (funct7 >> 2) {
                         case LR_D      :  exec_LR_D(cpu, inst); break;  
                         case SC_D      :  exec_SC_D(cpu, inst); break;  
                         case AMOSWAP_D :  exec_AMOSWAP_D(cpu, inst); break;  
@@ -1008,7 +1008,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                         default:
                             fprintf(stderr, 
                                 "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct5:0x%x\n"
-                                , opcode, funct3, funct5);
+                                , opcode, funct3, (funct7 >> 2));
                             cpu->trap = IllegalInstruction;
                             return 0;
                     } break;
