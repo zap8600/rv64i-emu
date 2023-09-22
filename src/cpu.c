@@ -641,7 +641,7 @@ void exec_LR_W(CPU* cpu, uint32_t inst) {}
 void exec_SC_W(CPU* cpu, uint32_t inst) {}  
 void exec_AMOSWAP_W(CPU* cpu, uint32_t inst) {
     int funct7 = (inst >> 25) & 0x7f;
-    printf("funct5=%#.8lx\n", (funct7 >> 2));
+    printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, cpu->regs[rs2(inst)]);
@@ -649,7 +649,7 @@ void exec_AMOSWAP_W(CPU* cpu, uint32_t inst) {
 }  
 void exec_AMOADD_W(CPU* cpu, uint32_t inst) {
     int funct7 = (inst >> 25) & 0x7f;
-    printf("funct5=%#.8lx\n", (funct7 >> 2));
+    printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     uint32_t res = tmp + (uint32_t)cpu->regs[rs2(inst)];
     cpu->regs[rd(inst)] = tmp;
@@ -687,7 +687,7 @@ void exec_LR_D(CPU* cpu, uint32_t inst) {}
 void exec_SC_D(CPU* cpu, uint32_t inst) {}  
 void exec_AMOSWAP_D(CPU* cpu, uint32_t inst) {
     int funct7 = (inst >> 25) & 0x7f;
-    printf("funct5=%#.8lx\n", (funct7 >> 2));
+    printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 64);
     cpu->regs[rd(inst)] = tmp;
     cpu_store(cpu, cpu->regs[rs1(inst)], 64, cpu->regs[rs2(inst)]);
@@ -695,7 +695,7 @@ void exec_AMOSWAP_D(CPU* cpu, uint32_t inst) {
 }
 void exec_AMOADD_D(CPU* cpu, uint32_t inst) {
     int funct7 = (inst >> 25) & 0x7f;
-    printf("funct5=%#.8lx\n", (funct7 >> 2));
+    printf("funct5=%#.8x\n", (funct7 >> 2));
     uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 64);
     uint32_t res = tmp + (uint32_t)cpu->regs[rs2(inst)];
     cpu->regs[rd(inst)] = tmp;
