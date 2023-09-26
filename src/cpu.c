@@ -24,7 +24,7 @@ void print_op(char* s, CPU* cpu) {
         default: fprintf(cpu->debug_log, "%s", s); break;
     }
     */
-    fprintf(cpu->debug_log, "%s", s); break;
+    fprintf(cpu->debug_log, "%s", s);
 }
 
 void cpu_init(CPU *cpu) {
