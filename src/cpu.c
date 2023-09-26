@@ -312,6 +312,7 @@ void exec_BNE(CPU* cpu, uint32_t inst) {
         cpu->pc = (cpu->pc + (int64_t) imm - 4);
     //print_op("bne");
     switch(cpu->pc-4) {
+        case 0x80001180: break;
         case 0x80001184: break;
         case 0x80001188: break;
         case 0x8000118c: break;
