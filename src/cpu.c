@@ -420,7 +420,7 @@ void exec_ADDI(CPU* cpu, uint32_t inst) {
 
 void exec_SLLI(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] << shamt(inst);
-    //print_op("slli\n");
+    print_op("slli\n");
 }
 
 void exec_SLTI(CPU* cpu, uint32_t inst) {
@@ -551,7 +551,7 @@ void exec_ADDIW(CPU* cpu, uint32_t inst) {
 // TODO
 void exec_SLLIW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] <<  shamt(inst));
-    //print_op("slliw\n");
+    print_op("slliw\n");
 }
 void exec_SRLIW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] >>  shamt(inst));
