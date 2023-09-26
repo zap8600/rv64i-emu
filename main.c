@@ -148,8 +148,8 @@ int main(int argc, char* argv[]) {
         }
         */
 
-        //dump_registers(&cpu);
-        //dump_csr(&cpu);
+        dump_registers(&cpu);
+        dump_csr(&cpu);
     }
     dump_registers(&cpu);
     printf("\n");
