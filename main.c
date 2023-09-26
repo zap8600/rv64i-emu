@@ -90,6 +90,9 @@ void exitEmu() {
 	tcsetattr(0, TCSANOW, &term);
     free(cpu.bus.dram.mem);
     free(cpu.bus.uart.data);
+    printf("\npc=%#.8lx\n", cpu.pc-4);
+    dump_registers(&cpu);
+    dump_csr(&cpu);
     exit(0);
 }
 
@@ -139,8 +142,8 @@ int main(int argc, char* argv[]) {
         }
         */
 
-        dump_registers(&cpu);
-        dump_csr(&cpu);
+        //dump_registers(&cpu);
+        //dump_csr(&cpu);
     }
     dump_registers(&cpu);
     printf("\n");
