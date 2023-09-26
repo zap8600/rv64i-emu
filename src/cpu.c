@@ -792,7 +792,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
 
     /*printf("%s\n%#.8lx -> Inst: %#.8x <OpCode: %#.2x, funct3:%#x, funct7:%#x> %s\n",
             ANSI_YELLOW, cpu->pc-4, inst, opcode, funct3, funct7, ANSI_RESET); // DEBUG*/
-    //printf("\n%#.8lx -> ", cpu->pc-4); //printf("%s\n%#.8lx -> %s", ANSI_YELLOW, cpu->pc-4, ANSI_RESET); // DEBUG
+    //printf("\npc=%#.8lx\n", cpu->pc-4); //printf("%s\n%#.8lx -> %s", ANSI_YELLOW, cpu->pc-4, ANSI_RESET); // DEBUG
 
     switch (opcode) {
         case LUI:   exec_LUI(cpu, inst); break;
