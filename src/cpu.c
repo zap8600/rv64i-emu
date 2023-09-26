@@ -452,7 +452,7 @@ void exec_ADDI(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SLLI(CPU* cpu, uint32_t inst) {
-    fprintf(cpu->debug_log, "pc=%#-13.2lx  slli=%#-13.2lx << %#-13.2lx = %#-13.2lx", cpu->pc-4, cpu->regs[rs1(inst)], shamt(inst), cpu->regs[rs1(inst)] << shamt(inst));
+    fprintf(cpu->debug_log, "pc=%#-13.2lx  slli=%#-13.2lx << %#-13.2x = %#-13.2lx", cpu->pc-4, cpu->regs[rs1(inst)], shamt_I(inst), cpu->regs[rs1(inst)] << shamt(inst));
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] << shamt_I(inst);
     //print_op("slli\n", cpu);
 }
@@ -476,7 +476,7 @@ void exec_XORI(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SRLI(CPU* cpu, uint32_t inst) {
-    fprintf(cpu->debug_log, "pc=%#-13.2lx  srli=%#-13.2lx >> %#-13.2lx = %#-13.2lx", cpu->pc-4, cpu->regs[rs1(inst)], shamt(inst), cpu->regs[rs1(inst)] >> shamt(inst));
+    fprintf(cpu->debug_log, "pc=%#-13.2lx  srli=%#-13.2lx >> %#-13.2x = %#-13.2lx", cpu->pc-4, cpu->regs[rs1(inst)], shamt_I(inst), cpu->regs[rs1(inst)] >> shamt(inst));
     uint64_t imm = imm_I(inst);
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] >> shamt_I(inst);
     //print_op("srli\n", cpu);
@@ -520,7 +520,7 @@ void exec_SUB(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SLL(CPU* cpu, uint32_t inst) {
-    fprintf(cpu->debug_log, "pc=%#-13.2lx  sll=%#-13.2lx << %#-13.2lx = %#-13.2lx", cpu->pc-4, cpu->regs[rs1(inst)], shamt(inst), cpu->regs[rs1(inst)] << shamt(inst));
+    fprintf(cpu->debug_log, "pc=%#-13.2lx  sll=%#-13.2lx << %#-13.2x = %#-13.2lx", cpu->pc-4, cpu->regs[rs1(inst)], shamt(inst), cpu->regs[rs1(inst)] << shamt(inst));
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] << shamt(inst);
     //print_op("sll\n", cpu);
 }
@@ -541,7 +541,7 @@ void exec_XOR(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SRL(CPU* cpu, uint32_t inst) {
-    fprintf(cpu->debug_log, "pc=%#-13.2lx  srl=%#-13.2lx >> %#-13.2lx = %#-13.2lx", cpu->pc-4, cpu->regs[rs1(inst)], shamt(inst), cpu->regs[rs1(inst)] >> shamt(inst));
+    fprintf(cpu->debug_log, "pc=%#-13.2lx  srl=%#-13.2lx >> %#-13.2x = %#-13.2lx", cpu->pc-4, cpu->regs[rs1(inst)], shamt(inst), cpu->regs[rs1(inst)] >> shamt(inst));
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] >> shamt(inst);
     //print_op("srl\n", cpu);
 }
