@@ -246,19 +246,7 @@ uint64_t imm_J(uint32_t inst) {
 uint32_t shamt(uint32_t inst) {
     // shamt(shift amount) only required for immediate shift instructions
     // shamt[4:5] = imm[5:0]
-    return (uint32_t)(rs2(inst) & 0x3f); // TODO: 0x1f / 0x3f ?
-}
-
-uint32_t shamt_I(uint32_t inst) {
-    // shamt(shift amount) only required for immediate shift instructions
-    // shamt[4:5] = imm[5:0]
-    return (uint32_t)(imm_I(inst) & 0x3f); // TODO: 0x1f / 0x3f ?
-}
-
-uint32_t shamt_IW(uint32_t inst) {
-    // shamt(shift amount) only required for immediate shift instructions
-    // shamt[4:5] = imm[5:0]
-    return (uint32_t)(imm_I(inst) & 0x1f); // TODO: 0x1f / 0x3f ?
+    return (uint32_t) (imm_I(inst) & 0x3f); // TODO: 0x1f / 0x3f ?
 }
 
 uint64_t csr(uint32_t inst) {
@@ -454,14 +442,14 @@ void exec_XORI(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SRLI(CPU* cpu, uint32_t inst) {
-    uint64_t imm = shamt_I(inst);
+    uint64_t imm = imm_I(inst);
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] >> imm;
     //print_op("srli\n");
 }
 
 void exec_SRAI(CPU* cpu, uint32_t inst) {
-    uint64_t imm = shamt_I(inst);
-    cpu->regs[rd(inst)] = (uint64_t)((int32_t)cpu->regs[rs1(inst)] >> imm);
+    uint64_t imm = imm_I(inst);
+    cpu->regs[rd(inst)] = (int32_t)cpu->regs[rs1(inst)] >> imm;
     //print_op("srai\n");
 }
 
@@ -517,14 +505,13 @@ void exec_XOR(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SRL(CPU* cpu, uint32_t inst) {
-    uint64_t imm = shamt(inst);
-    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] >> imm;
+    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] >> cpu->regs[rs2(inst)];
     //print_op("srl\n");
 }
 
 void exec_SRA(CPU* cpu, uint32_t inst) {
-    uint64_t imm = shamt(inst);
-    cpu->regs[rd(inst)] = (uint64_t)((int64_t)cpu->regs[rs1(inst)] >> imm);
+    cpu->regs[rd(inst)] = (int32_t)cpu->regs[rs1(inst)] >> 
+        (int64_t) cpu->regs[rs2(inst)];
     //print_op("sra\n");
 }
 
@@ -567,13 +554,12 @@ void exec_SLLIW(CPU* cpu, uint32_t inst) {
     //print_op("slliw\n");
 }
 void exec_SRLIW(CPU* cpu, uint32_t inst) {
-    uint64_t imm = shamt_IW(inst);
-    cpu->regs[rd(inst)] = (int64_t)(int32_t)((uint32_t)cpu->regs[rs1(inst)] >> imm);
+    cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] >>  shamt(inst));
     //print_op("srliw\n");
 }
 void exec_SRAIW(CPU* cpu, uint32_t inst) {
-    uint64_t imm = shamt_IW(inst);
-    cpu->regs[rd(inst)] = (int64_t)((int32_t)cpu->regs[rs1(inst)] >> (uint64_t)(int64_t)(int32_t) imm);
+    uint64_t imm = imm_I(inst);
+    cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] >> (uint64_t)(int64_t)(int32_t) imm);
     //print_op("sraiw\n");
 }
 void exec_ADDW(CPU* cpu, uint32_t inst) {
