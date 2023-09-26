@@ -512,7 +512,7 @@ void exec_SUB(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SLL(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] << (int64_t)cpu->regs[rs2(inst)];
+    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] << (int64_t)(cpu->regs[rs2(inst)] & 0x1F);
     print_op("sll\n", cpu);
 }
 
@@ -532,13 +532,13 @@ void exec_XOR(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SRL(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] >> cpu->regs[rs2(inst)];
+    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] >> (cpu->regs[rs2(inst)] & 0x1F);
     print_op("srl\n", cpu);
 }
 
 void exec_SRA(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = (int32_t)cpu->regs[rs1(inst)] >> 
-        (int64_t) cpu->regs[rs2(inst)];
+        (int64_t) (cpu->regs[rs2(inst)] & 0x1F);
     print_op("sra\n", cpu);
 }
 
