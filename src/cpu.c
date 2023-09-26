@@ -15,7 +15,13 @@
 
 // print operation for DEBUG
 void print_op(char* s, CPU* cpu) {
-    fprintf(cpu->debug_log, "%s", s); //printf("%s%s%s", ANSI_BLUE, s, ANSI_RESET);
+    switch (cpu->pc-4) {
+        case 0x80001180: break;
+        case 0x80001184: break;
+        case 0x80001188: break;
+        case 0x8000118c: break;
+        default: fprintf(cpu->debug_log, "%s", s); break;
+    }
 }
 
 void cpu_init(CPU *cpu) {
@@ -185,13 +191,25 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
 
 uint64_t cpu_load(CPU* cpu, uint64_t addr, uint64_t size) {
     uint64_t p_addr = cpu_translate(cpu, addr, Load);
-    fprintf(cpu->debug_log, "load=%lx %lx %lx\n", p_addr, size, bus_load(&(cpu->bus), p_addr, size));
+    switch (cpu->pc-4) {
+        case 0x80001180: break;
+        case 0x80001184: break;
+        case 0x80001188: break;
+        case 0x8000118c: break;
+        default: fprintf(cpu->debug_log, "load=%lx %lx %lx\n", p_addr, size, bus_load(&(cpu->bus), p_addr, size));
+    }
     return bus_load(&(cpu->bus), p_addr, size);
 }
 
 void cpu_store(CPU* cpu, uint64_t addr, uint64_t size, uint64_t value) {
     uint64_t p_addr = cpu_translate(cpu, addr, Store);
-    fprintf(cpu->debug_log, "store=%#-13.2lx %#-13.2lx %#-13.2lx\n", p_addr, size, value);
+    switch (cpu->pc-4) {
+        case 0x80001180: break;
+        case 0x80001184: break;
+        case 0x80001188: break;
+        case 0x8000118c: break;
+        default: fprintf(cpu->debug_log, "store=%#-13.2lx %#-13.2lx %#-13.2lx\n", p_addr, size, value);
+    }
     bus_store(&(cpu->bus), p_addr, size, value);
 }
 
@@ -792,7 +810,14 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
 
     /*printf("%s\n%#.8lx -> Inst: %#.8x <OpCode: %#.2x, funct3:%#x, funct7:%#x> %s\n",
             ANSI_YELLOW, cpu->pc-4, inst, opcode, funct3, funct7, ANSI_RESET); // DEBUG*/
-    fprintf(cpu->debug_log, "\npc=%#.8lx\n", cpu->pc-4); //printf("%s\n%#.8lx -> %s", ANSI_YELLOW, cpu->pc-4, ANSI_RESET); // DEBUG
+    switch (cpu->pc-4) {
+        case 0x80001180: break;
+        case 0x80001184: break;
+        case 0x80001188: break;
+        case 0x8000118c: break;
+        default: fprintf(cpu->debug_log, "\npc=%#.8lx\n", cpu->pc-4);
+    }
+    //printf("%s\n%#.8lx -> %s", ANSI_YELLOW, cpu->pc-4, ANSI_RESET); // DEBUG
 
     switch (opcode) {
         case LUI:   exec_LUI(cpu, inst); break;
