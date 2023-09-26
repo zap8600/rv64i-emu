@@ -323,7 +323,7 @@ void exec_BGE(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_B(inst);
     if ((int64_t) cpu->regs[rs1(inst)] >= (int64_t) cpu->regs[rs2(inst)])
         cpu->pc = cpu->pc + (int64_t) imm - 4;
-    print_op("bge\n");
+    print_op("bge\n", cpu);
 }
 void exec_BLTU(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_B(inst);
