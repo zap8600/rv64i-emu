@@ -292,7 +292,7 @@ void exec_JALR(CPU* cpu, uint32_t inst) {
     cpu->pc = (cpu->regs[rs1(inst)] + (int64_t) imm) & 0xfffffffe;
     cpu->regs[rd(inst)] = tmp;
     print_op("jalr\n");
-    print_op("NEXT -> %#lx, imm:%#lx\n", cpu->pc, imm);
+    /*print_op("NEXT -> %#lx, imm:%#lx\n", cpu->pc, imm);*/
     if (ADDR_MISALIGNED(cpu->pc)) {
         fprintf(stderr, "JAL pc address misalligned");
         exit(0);
