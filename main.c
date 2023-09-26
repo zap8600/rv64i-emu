@@ -83,6 +83,10 @@ void read_disk(CPU* cpu, char *filename)
     free(buffer);
 }
 
+void open_debug(CPU* cpu, char *filename) {
+    cpu->debug_log = fopen(filename, "w");
+}
+
 void exitEmu() {
     struct termios term;
 	tcgetattr(0, &term);
@@ -93,18 +97,20 @@ void exitEmu() {
     printf("\npc=%#.8lx\n", cpu.pc-4);
     dump_registers(&cpu);
     dump_csr(&cpu);
+    fclose(cpu.debug_log);
     exit(0);
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        printf("Usage: %s <filename> <disk>\n", argv[0]);
+    if (argc != 4) {
+        printf("Usage: %s <filename> <disk> <debug log>\n", argv[0]);
         return 1;
     }
 
     cpu_init(&cpu);
     read_bin(&cpu, argv[1]);
     read_disk(&cpu, argv[2]);
+    open_debug(&cpu, argv[3]);
 
     signal(SIGINT, exitEmu);
     struct termios term;

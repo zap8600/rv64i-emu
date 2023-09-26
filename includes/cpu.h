@@ -1,6 +1,7 @@
 #ifndef CPU_H
 #define CPU_H
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "bus.h"
@@ -59,6 +60,7 @@ typedef struct CPU {
     Interrupt intr;
     bool enable_paging;
     uint64_t page_table;
+    FILE* debug_log;
 } CPU;
 
 void cpu_init(struct CPU *cpu);
