@@ -133,16 +133,18 @@ int main(int argc, char* argv[]) {
 
         /*
         if (cpu.enable_paging) {
-            printf("paging on!\n");
+            printf("paging is on\n");
         } else {
-            printf("paging off!\n");
+            printf("paging is off\n");
         }
         */
-        dump_registers(&cpu);
-        dump_csr(&cpu);
+
+        //dump_registers(&cpu);
+        //dump_csr(&cpu);
     }
     dump_registers(&cpu);
     printf("\n");
     dump_csr(&cpu);
+    exitEmu();
     return 0;
 }

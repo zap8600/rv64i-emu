@@ -236,7 +236,7 @@ uint64_t imm_J(uint32_t inst) {
 uint32_t shamt(uint32_t inst) {
     // shamt(shift amount) only required for immediate shift instructions
     // shamt[4:5] = imm[5:0]
-    return (uint32_t) (imm_I(inst) & 0x1f); // TODO: 0x1f / 0x3f ?
+    return (uint32_t) (imm_I(inst) & 0x3f); // TODO: 0x1f / 0x3f ?
 }
 
 uint64_t csr(uint32_t inst) {
@@ -846,7 +846,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case SLTIU: exec_SLTIU(cpu, inst); break;
                 case XORI:  exec_XORI(cpu, inst); break;
                 case SRI:   
-                    switch (funct7) {
+                    switch (funct7 >> 1) {
                         case SRLI:  exec_SRLI(cpu, inst); break;
                         case SRAI:  exec_SRAI(cpu, inst); break;
                         default:

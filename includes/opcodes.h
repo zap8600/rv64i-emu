@@ -38,7 +38,7 @@
     #define XORI    0x4
     #define SRI     0x5
         #define SRLI    0x00
-        #define SRAI    0x20
+        #define SRAI    0x10
     #define ORI     0x6
     #define ANDI    0x7
 
