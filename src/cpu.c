@@ -319,7 +319,8 @@ void exec_BNE(CPU* cpu, uint32_t inst) {
             printf("pc=%lx\n", cpu->pc-4);
             print_op("bne");
             printf("=%#-13.2lx %#-13.2lx\n", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)]);
-    } break;
+            break;
+    }
 }
 void exec_BLT(CPU* cpu, uint32_t inst) {
     /*//print_op("Operation: BLT\n");*/
