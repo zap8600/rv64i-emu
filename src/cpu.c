@@ -276,10 +276,17 @@ uint32_t shamt(uint32_t inst) {
     return (uint32_t) (rs2(inst) & 0x3f); // TODO: 0x1f / 0x3f ?
 }
 
+uint32_t shamt_W(uint32_t inst) {
+    // shamt(shift amount) only required for immediate shift instructions
+    // shamt[4:5] = imm[5:0]
+    return (uint32_t) (rs2(inst) & 0x3f); // TODO: 0x1f / 0x3f ?
+}
+
 uint32_t shamt_I(uint32_t inst) {
     // shamt(shift amount) only required for immediate shift instructions
     // shamt[4:5] = imm[5:0]
-    return (uint32_t) (imm_I(inst) & 0x3f); // TODO: 0x1f / 0x3f ?
+    uint64_t imm = ((int64_t)(int32_t) (inst & 0xfff00000)) >> 20;
+    return (uint32_t) (imm & 0x3f); // TODO: 0x1f / 0x3f ?
 }
 
 uint32_t shamt_IW(uint32_t inst) {
@@ -623,7 +630,7 @@ void exec_DIVW(CPU* cpu, uint32_t inst) {
     //print_op("divw\n", cpu);
 }
 void exec_SLLW(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] <<  cpu->regs[rs2(inst)]);
+    cpu->regs[rd(inst)] = (int32_t) (((uint32_t)cpu->regs[rs1(inst)]) << shamt_W(inst));
     //print_op("sllw\n", cpu);
 }
 void exec_SRLW(CPU* cpu, uint32_t inst) {
