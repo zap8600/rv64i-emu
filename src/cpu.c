@@ -96,6 +96,7 @@ void cpu_check_interrupt(CPU* cpu) {
 }
 
 void cpu_update_paging(CPU* cpu, size_t csr_addr) {
+    printf("update paging\n");
     if (csr_addr != SATP) {
         return;
     }
@@ -105,8 +106,10 @@ void cpu_update_paging(CPU* cpu, size_t csr_addr) {
     uint64_t mode = (csr_read(cpu, SATP)) >> 60;
 
     if (mode == 8) {
+        printf("paging on\n");
         cpu->enable_paging = true;
     } else {
+        printf("paging off\n");
         cpu->enable_paging = false;
     }
 }
@@ -117,7 +120,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
     }
 
     int64_t levels = 3;
-    uint64_t vpn[3] = {((addr & 0x1ff) >> 12), ((addr & 0x1ff) >> 21), ((addr & 0x1ff) >> 30)};
+    uint64_t vpn[3] = {((addr >> 12) & 0x1ff), ((addr >> 21) & 0x1ff), ((addr >> 30) & 0x1ff)};
 
     uint64_t a = cpu->page_table;
     int64_t i = levels - 1;
@@ -152,19 +155,26 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
         }
     }
 
-    uint64_t ppna[3] = {((pte & 0x1ff) >> 10), ((pte & 0x1ff) >> 19), ((pte & 0x03ffffff) >> 28)};
+    uint64_t ppna[3] = {((pte >> 10) & 0x1ff), ((pte >> 19) & 0x1ff), ((pte >> 28) & 0x03ffffff)};
     uint64_t ppn;
 
     uint64_t offset = addr & 0xfff;
     switch (i) {
         case 0:
             ppn = (pte & 0x0fffffffffff) >> 10;
+            printf("translate= case=0 return=%lx\n", (ppn << 12) | offset);
             return (ppn << 12) | offset;
+            break;
         case 1:
+            printf("translate= case=1 return=%lx\n", (ppna[2] << 30) | (ppna[1] << 21) | (vpn[0] << 12) | offset);
             return (ppna[2] << 30) | (ppna[1] << 21) | (vpn[0] << 12) | offset;
+            break;
         case 2:
+            printf("translate= case=2 return=%lx\n", (ppna[2] << 30) | (vpn[1] << 21) | (vpn[0] << 12) | offset);
             return (ppna[2] << 30) | (vpn[1] << 21) | (vpn[0] << 12) | offset;
+            break;
         default:
+            printf("mmu error\n");
             switch (access_type) {
                 case Instruction: cpu->trap = InstructionPageFault; return InstructionPageFault;
                 case Load: cpu->trap = LoadPageFault; return LoadPageFault;
