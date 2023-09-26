@@ -95,7 +95,7 @@ void cpu_check_interrupt(CPU* cpu) {
     return;
 }
 
-void cpu_update_paging(CPU* cpu, size_t csr_addr) {
+void cpu_update_paging(CPU* cpu, uint64_t csr_addr) {
     printf("update paging\n");
     if (csr_addr != SATP) {
         return;
