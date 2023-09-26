@@ -311,17 +311,6 @@ void exec_BNE(CPU* cpu, uint32_t inst) {
     if ((int64_t) cpu->regs[rs1(inst)] != (int64_t) cpu->regs[rs2(inst)])
         cpu->pc = (cpu->pc + (int64_t) imm - 4);
     //print_op("bne");
-    switch(cpu->pc-4) {
-        case 0x80001180: break;
-        case 0x80001184: break;
-        case 0x80001188: break;
-        case 0x8000118c: break;
-        default:
-            printf("pc=%lx\n", cpu->pc-4);
-            print_op("bne");
-            printf("=%#-13.2lx %#-13.2lx\n", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)]);
-            break;
-    }
 }
 void exec_BLT(CPU* cpu, uint32_t inst) {
     /*//print_op("Operation: BLT\n");*/
@@ -803,7 +792,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
 
     /*printf("%s\n%#.8lx -> Inst: %#.8x <OpCode: %#.2x, funct3:%#x, funct7:%#x> %s\n",
             ANSI_YELLOW, cpu->pc-4, inst, opcode, funct3, funct7, ANSI_RESET); // DEBUG*/
-    //printf("\npc=%#.8lx\n", cpu->pc-4); //printf("%s\n%#.8lx -> %s", ANSI_YELLOW, cpu->pc-4, ANSI_RESET); // DEBUG
+    printf("\npc=%#.8lx\n", cpu->pc-4); //printf("%s\n%#.8lx -> %s", ANSI_YELLOW, cpu->pc-4, ANSI_RESET); // DEBUG
 
     switch (opcode) {
         case LUI:   exec_LUI(cpu, inst); break;
