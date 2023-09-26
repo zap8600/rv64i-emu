@@ -310,7 +310,8 @@ void exec_BNE(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_B(inst);
     if ((int64_t) cpu->regs[rs1(inst)] != (int64_t) cpu->regs[rs2(inst)])
         cpu->pc = (cpu->pc + (int64_t) imm - 4);
-    //print_op("bne\n");
+    print_op("bne");
+    printf("=%#-13.2lx %#-13.2lx\n", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)]);
 }
 void exec_BLT(CPU* cpu, uint32_t inst) {
     /*//print_op("Operation: BLT\n");*/
@@ -420,7 +421,7 @@ void exec_ADDI(CPU* cpu, uint32_t inst) {
 
 void exec_SLLI(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] << shamt(inst);
-    print_op("slli\n");
+    //print_op("slli\n");
 }
 
 void exec_SLTI(CPU* cpu, uint32_t inst) {
@@ -551,7 +552,7 @@ void exec_ADDIW(CPU* cpu, uint32_t inst) {
 // TODO
 void exec_SLLIW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] <<  shamt(inst));
-    print_op("slliw\n");
+    //print_op("slliw\n");
 }
 void exec_SRLIW(CPU* cpu, uint32_t inst) {
     cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] >>  shamt(inst));
