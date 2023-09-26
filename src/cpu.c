@@ -96,10 +96,10 @@ void cpu_check_interrupt(CPU* cpu) {
 }
 
 void cpu_update_paging(CPU* cpu, uint64_t csr_addr) {
-    printf("update paging\n");
     if (csr_addr != SATP) {
         return;
     }
+    printf("update paging\n");
 
     cpu->page_table = (csr_read(cpu, SATP) & ((1ULL << 44) - 1)) * CPU_PAGE_SIZE;
 
