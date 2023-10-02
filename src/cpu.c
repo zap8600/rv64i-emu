@@ -599,7 +599,7 @@ void exec_EBREAK(CPU* cpu, uint32_t inst) {
 
 void exec_ADDIW(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_I(inst);
-    cpu->regs[rd(inst)] = (int64_t)(int32_t)(cpu->regs[rs1(inst)] + (int64_t) imm;)
+    cpu->regs[rd(inst)] = (int64_t)(int32_t)(cpu->regs[rs1(inst)] + (int64_t) imm);
     //print_op("addiw\n", cpu);
 }
 
