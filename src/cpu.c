@@ -472,13 +472,21 @@ void exec_SLLI(CPU* cpu, uint32_t inst) {
 
 void exec_SLTI(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_I(inst);
-    cpu->regs[rd(inst)] = (cpu->regs[rs1(inst)] < (int64_t) imm)?1:0;
+    if (((int64_t)cpu->regs[rs1(inst)]) < ((int64_t)imm)) {
+        cpu->regs[rd(inst)] = 1;
+    } else {
+        cpu->regs[rd(inst)] = 0;
+    }
     //print_op("slti\n", cpu);
 }
 
 void exec_SLTIU(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_I(inst);
-    cpu->regs[rd(inst)] = (cpu->regs[rs1(inst)] < imm)?1:0;
+    if (cpu->regs[rs1(inst)] < imm) {
+        cpu->regs[rd(inst)] = 1;
+    } else {
+        cpu->regs[rd(inst)] = 0;
+    }
     //print_op("sltiu\n", cpu);
 }
 
@@ -591,7 +599,7 @@ void exec_EBREAK(CPU* cpu, uint32_t inst) {
 
 void exec_ADDIW(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_I(inst);
-    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] + (int64_t) imm;
+    cpu->regs[rd(inst)] = (int64_t)(int32_t)(cpu->regs[rs1(inst)] + (int64_t) imm;)
     //print_op("addiw\n", cpu);
 }
 
@@ -606,7 +614,7 @@ void exec_SRLIW(CPU* cpu, uint32_t inst) {
 }
 void exec_SRAIW(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_I(inst);
-    cpu->regs[rd(inst)] = (int64_t) (((int32_t)cpu->regs[rs1(inst)]) >> (uint64_t)(int64_t)(int32_t) imm);
+    cpu->regs[rd(inst)] = (int64_t) (((int32_t)cpu->regs[rs1(inst)]) >> shamt_IW(inst));
     //print_op("sraiw\n", cpu);
 }
 void exec_ADDW(CPU* cpu, uint32_t inst) {
