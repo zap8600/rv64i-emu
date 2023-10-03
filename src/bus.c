@@ -1,4 +1,5 @@
 #include "../includes/bus.h"
+#include <stdio.h>
 
 void bus_init(BUS* bus) {
     dram_init(&(bus->dram));
@@ -24,7 +25,7 @@ uint64_t bus_load(BUS* bus, uint64_t addr, uint64_t size) {
     if (DRAM_BASE <= addr) {
         return dram_load(&(bus->dram), addr, size);
     }
-    fprintf(stderr, "Load Access Fault!\n"); break;
+    fprintf(stderr, "Load Access Fault!\n");
     return 1;
 }
 void bus_store(BUS* bus, uint64_t addr, uint64_t size, uint64_t value) {
@@ -42,7 +43,5 @@ void bus_store(BUS* bus, uint64_t addr, uint64_t size, uint64_t value) {
     }
     if (DRAM_BASE <= addr) {
         dram_store(&(bus->dram), addr, size, value);
-    } else {
-        fprintf(stderr, "Store AMO Access Fault!\n"); break;
     }
 }
