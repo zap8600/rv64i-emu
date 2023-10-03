@@ -24,6 +24,7 @@ uint64_t bus_load(BUS* bus, uint64_t addr, uint64_t size) {
     if (DRAM_BASE <= addr) {
         return dram_load(&(bus->dram), addr, size);
     }
+    fprintf(stderr, "Load Access Fault!\n"); break;
     return 1;
 }
 void bus_store(BUS* bus, uint64_t addr, uint64_t size, uint64_t value) {
@@ -41,5 +42,7 @@ void bus_store(BUS* bus, uint64_t addr, uint64_t size, uint64_t value) {
     }
     if (DRAM_BASE <= addr) {
         dram_store(&(bus->dram), addr, size, value);
+    } else {
+        fprintf(stderr, "Store AMO Access Fault!\n"); break;
     }
 }
