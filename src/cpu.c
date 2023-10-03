@@ -503,7 +503,7 @@ void exec_SRLI(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SRAI(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = ((int64_t)cpu->regs[rs1(inst)]) >> shamt_I(inst);
+    cpu->regs[rd(inst)] = (uint64_t)(((int64_t)cpu->regs[rs1(inst)]) >> shamt_I(inst));
     //print_op("srai\n", cpu);
 }
 
