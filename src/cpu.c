@@ -520,37 +520,42 @@ void exec_ANDI(CPU* cpu, uint32_t inst) {
 }
 
 void exec_ADD(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] =
-        (uint64_t) ((int64_t)cpu->regs[rs1(inst)] + (int64_t)cpu->regs[rs2(inst)]);
+    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] + cpu->regs[rs2(inst)];
     //print_op("add\n", cpu);
 }
 
 void exec_MUL(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] =
-        (uint64_t) ((int64_t)cpu->regs[rs1(inst)] * (int64_t)cpu->regs[rs2(inst)]);
+    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] * cpu->regs[rs2(inst)];
     //print_op("mul\n", cpu);
     //printf("=%#-13.2lx * %#-13.2lx = %#-13.2lx\n", cpu->regs[rs1(inst)], cpu->regs[rs2(inst)], cpu->regs[rd(inst)]);
 }
 
 void exec_SUB(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] =
-        (uint64_t) ((int64_t)cpu->regs[rs1(inst)] - (int64_t)cpu->regs[rs2(inst)]);
+    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] - cpu->regs[rs2(inst)];
     //print_op("sub\n", cpu);
 }
 
 void exec_SLL(CPU* cpu, uint32_t inst) {
-    fprintf(cpu->debug_log, "pc=%#-13.2lx  sll=%#-13.2lx << %#-13.2x = %#-13.2lx\n", cpu->pc-4, cpu->regs[rs1(inst)], shamt(inst), cpu->regs[rs1(inst)] << shamt(inst));
+    //fprintf(cpu->debug_log, "pc=%#-13.2lx  sll=%#-13.2lx << %#-13.2x = %#-13.2lx\n", cpu->pc-4, cpu->regs[rs1(inst)], shamt(inst), cpu->regs[rs1(inst)] << shamt(inst));
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] << shamt(inst);
     //print_op("sll\n", cpu);
 }
 
 void exec_SLT(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (cpu->regs[rs1(inst)] < (int64_t) cpu->regs[rs2(inst)])?1:0;
+    if (((int64_t)cpu->regs[rs1(inst)]) < ((int64_t)cpu->regs[rs2(inst)])) {
+        cpu->regs[rd(inst)] = 1;
+    } else {
+        cpu->regs[rd(inst)] = 0;
+    }
     //print_op("slt\n", cpu);
 }
 
 void exec_SLTU(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (cpu->regs[rs1(inst)] < cpu->regs[rs2(inst)])?1:0;
+    if (cpu->regs[rs1(inst)] < cpu->regs[rs2(inst)]) {
+        cpu->regs[rd(inst)] = 1;
+    } else {
+        cpu->regs[rd(inst)] = 0;
+    }
     //print_op("slti\n", cpu);
 }
 
@@ -599,7 +604,7 @@ void exec_EBREAK(CPU* cpu, uint32_t inst) {
 
 void exec_ADDIW(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_I(inst);
-    cpu->regs[rd(inst)] = (int64_t)(int32_t)(cpu->regs[rs1(inst)] + (int64_t) imm);
+    cpu->regs[rd(inst)] = (int64_t)(int32_t)(cpu->regs[rs1(inst)] + imm);
     //print_op("addiw\n", cpu);
 }
 
@@ -618,8 +623,7 @@ void exec_SRAIW(CPU* cpu, uint32_t inst) {
     //print_op("sraiw\n", cpu);
 }
 void exec_ADDW(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] 
-            + (int64_t) cpu->regs[rs2(inst)]);
+    cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] + cpu->regs[rs2(inst)]);
     //print_op("addw\n", cpu);
 }
 void exec_MULW(CPU* cpu, uint32_t inst) {
@@ -628,8 +632,7 @@ void exec_MULW(CPU* cpu, uint32_t inst) {
     //print_op("mulw\n", cpu);
 }
 void exec_SUBW(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] 
-            - (int64_t) cpu->regs[rs2(inst)]);
+    cpu->regs[rd(inst)] = (int32_t) (cpu->regs[rs1(inst)] - cpu->regs[rs2(inst)]);
     //print_op("subw\n", cpu);
 }
 void exec_DIVW(CPU* cpu, uint32_t inst) {
@@ -642,7 +645,7 @@ void exec_SLLW(CPU* cpu, uint32_t inst) {
     //print_op("sllw\n", cpu);
 }
 void exec_SRLW(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] >>  cpu->regs[rs2(inst)]);
+    cpu->regs[rd(inst)] = (int32_t) (((uint32_t)cpu->regs[rs1(inst)]) >> shamt_W(inst));
     //print_op("srlw\n", cpu);
 }
 void exec_DIVUW(CPU* cpu, uint32_t inst) {
@@ -650,7 +653,7 @@ void exec_DIVUW(CPU* cpu, uint32_t inst) {
     //print_op("divuw\n", cpu);
 }
 void exec_SRAW(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (int64_t)(int32_t) (cpu->regs[rs1(inst)] >>  (uint64_t)(int64_t)(int32_t) cpu->regs[rs2(inst)]);
+    cpu->regs[rd(inst)] = (((int32_t)cpu->regs[rs1(inst)]) >> ((int32_t)cpu->regs[rs2(inst)]));
     //print_op("sraw\n", cpu);
 }
 void exec_REMW(CPU* cpu, uint32_t inst) {
