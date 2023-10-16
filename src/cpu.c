@@ -842,7 +842,7 @@ void exec_MRET(CPU* cpu, uint32_t inst) {
 int cpu_execute(CPU *cpu, uint32_t inst) {
     int opcode = inst & 0x7f;           // opcode in bits 6..0
     int funct3 = (inst >> 12) & 0x7;    // funct3 in bits 14..12
-    int funct7 = (inst >> 25) & 0x7f;   // funct7 in bits 31..25
+    int funct7 = (inst >> 25) & 0xfe;   // funct7 in bits 31..25
     int funct5 = funct7 >> 2;
     int rs2a = (inst >> 20) & 0x1f;
 
