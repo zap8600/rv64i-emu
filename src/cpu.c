@@ -459,8 +459,8 @@ void exec_SD(CPU* cpu, uint32_t inst) {
 }
 
 void exec_ADDI(CPU* cpu, uint32_t inst) {
-    uint64_t imm = imm_I(inst);
-    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] + (int64_t) imm;
+    uint64_t imm = ((int64_t)(int32_t)inst & 0xfff00000) >> 20;
+    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] + imm;
     //print_op("addi\n", cpu);
 }
 
