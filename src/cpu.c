@@ -292,7 +292,8 @@ uint32_t shamt_I(uint32_t inst) {
 uint32_t shamt_IW(uint32_t inst) {
     // shamt(shift amount) only required for immediate shift instructions
     // shamt[4:5] = imm[5:0]
-    return (uint32_t) (imm_I(inst) & 0x1f); // TODO: 0x1f / 0x3f ?
+    uint64_t imm = ((int64_t)(int32_t) (inst)) >> 20;
+    return (uint32_t) (imm & 0x1f); // TODO: 0x1f / 0x3f ?
 }
 
 uint64_t csr(uint32_t inst) {
@@ -314,7 +315,7 @@ void exec_LUI(CPU* cpu, uint32_t inst) {
 void exec_AUIPC(CPU* cpu, uint32_t inst) {
     // AUIPC forms a 32-bit offset from the 20 upper bits 
     // of the U-immediate
-    uint64_t imm = imm_U(inst);
+    uint64_t imm = (int64_t)(int32_t)(inst & 0xfffff000)
     cpu->regs[rd(inst)] = (cpu->pc + imm) - 4;
     //print_op("auipc\n", cpu);
     //printf("=%#-13.2lx\n", (cpu->pc + imm) - 4);
@@ -459,7 +460,7 @@ void exec_SD(CPU* cpu, uint32_t inst) {
 }
 
 void exec_ADDI(CPU* cpu, uint32_t inst) {
-    uint64_t imm = ((int64_t)(int32_t)inst & 0xfff00000) >> 20;
+    uint64_t imm = ((int64_t)(int32_t)(inst & 0xfff00000)) >> 20;
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] + imm;
     //print_op("addi\n", cpu);
 }
@@ -471,7 +472,7 @@ void exec_SLLI(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SLTI(CPU* cpu, uint32_t inst) {
-    uint64_t imm = imm_I(inst);
+    uint64_t imm = ((int64_t)(int32_t)(inst & 0xfff00000)) >> 20;
     if (((int64_t)cpu->regs[rs1(inst)]) < ((int64_t)imm)) {
         cpu->regs[rd(inst)] = 1;
     } else {
@@ -481,7 +482,7 @@ void exec_SLTI(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SLTIU(CPU* cpu, uint32_t inst) {
-    uint64_t imm = imm_I(inst);
+    uint64_t imm = ((int64_t)(int32_t)(inst & 0xfff00000)) >> 20;
     if (cpu->regs[rs1(inst)] < imm) {
         cpu->regs[rd(inst)] = 1;
     } else {
@@ -491,7 +492,7 @@ void exec_SLTIU(CPU* cpu, uint32_t inst) {
 }
 
 void exec_XORI(CPU* cpu, uint32_t inst) {
-    uint64_t imm = imm_I(inst);
+    uint64_t imm = ((int64_t)(int32_t)(inst & 0xfff00000)) >> 20;
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] ^ imm;
     //print_op("xori\n", cpu);
 }
@@ -503,18 +504,18 @@ void exec_SRLI(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SRAI(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (uint64_t)(((int64_t)cpu->regs[rs1(inst)]) >> shamt_I(inst));
+    cpu->regs[rd(inst)] = ((int64_t)cpu->regs[rs1(inst)]) >> shamt_I(inst);
     //print_op("srai\n", cpu);
 }
 
 void exec_ORI(CPU* cpu, uint32_t inst) {
-    uint64_t imm = imm_I(inst);
+    uint64_t imm = ((int64_t)(int32_t)(inst & 0xfff00000)) >> 20;
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] | imm;
     //print_op("ori\n", cpu);
 }
 
 void exec_ANDI(CPU* cpu, uint32_t inst) {
-    uint64_t imm = imm_I(inst);
+    uint64_t imm = ((int64_t)(int32_t)(inst & 0xfff00000)) >> 20;
     cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] & imm;
     //print_op("andi\n", cpu);
 }
