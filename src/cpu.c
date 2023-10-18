@@ -315,7 +315,7 @@ void exec_LUI(CPU* cpu, uint32_t inst) {
 void exec_AUIPC(CPU* cpu, uint32_t inst) {
     // AUIPC forms a 32-bit offset from the 20 upper bits 
     // of the U-immediate
-    uint64_t imm = (int64_t)(int32_t)(inst & 0xfffff000)
+    uint64_t imm = (int64_t)(int32_t)(inst & 0xfffff000);
     cpu->regs[rd(inst)] = (cpu->pc + imm) - 4;
     //print_op("auipc\n", cpu);
     //printf("=%#-13.2lx\n", (cpu->pc + imm) - 4);
@@ -654,7 +654,7 @@ void exec_SRLW(CPU* cpu, uint32_t inst) {
     //print_op("srlw\n", cpu);
 }
 void exec_DIVU(CPU* cpu, uint32_t inst) {
-    switch (cup->regs[rs2(inst)]) {
+    switch (cpu->regs[rs2(inst)]) {
         case 0: cpu->regs[rd(inst)] = 0xffffffffffffffff; break;
         default: cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] / cpu->regs[rs2(inst)]; break;
     }
