@@ -244,7 +244,7 @@ uint64_t rs2(uint32_t inst) {
 
 uint64_t imm_I(uint32_t inst) {
     // imm[11:0] = inst[31:20]
-    return (int64_t)((int32_t) (inst) >> 20); // right shift as signed?
+    return ((int64_t)(int32_t) (inst)) >> 20; // right shift as signed?
 }
 uint64_t imm_S(uint32_t inst) {
     // imm[11:5] = inst[31:25], imm[4:0] = inst[11:7]
@@ -273,13 +273,13 @@ uint64_t imm_J(uint32_t inst) {
 uint32_t shamt(uint32_t inst) {
     // shamt(shift amount) only required for immediate shift instructions
     // shamt[4:5] = imm[5:0]
-    return (uint32_t) (rs2(inst) & 0x3f); // TODO: 0x1f / 0x3f ?
+    return (uint32_t) ((uint64_t)(rs2(inst) & 0x3f)); // TODO: 0x1f / 0x3f ?
 }
 
 uint32_t shamt_W(uint32_t inst) {
     // shamt(shift amount) only required for immediate shift instructions
     // shamt[4:5] = imm[5:0]
-    return (uint32_t) (rs2(inst) & 0x3f); // TODO: 0x1f / 0x3f ?
+    return (uint32_t) (rs2(inst) & 0x1f); // TODO: 0x1f / 0x3f ?
 }
 
 uint32_t shamt_I(uint32_t inst) {
@@ -571,7 +571,7 @@ void exec_SRL(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SRA(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = ((int64_t)cpu->regs[rs1(inst)]) >> (shamt(inst));
+    cpu->regs[rd(inst)] = ((int64_t)cpu->regs[rs1(inst)]) >> shamt(inst);
     //print_op("sra\n", cpu);
 }
 
@@ -710,19 +710,14 @@ void exec_SC_W(CPU* cpu, uint32_t inst) {}
 void exec_AMOSWAP_W(CPU* cpu, uint32_t inst) {
     // int funct7 = (inst >> 25) & 0x7f;
     // printf("funct5=%#.8x\n", (funct7 >> 2));
-    uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
-    //cpu->regs[rd(inst)] = tmp;
+    uint64_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
     cpu_store(cpu, cpu->regs[rs1(inst)], 32, cpu->regs[rs2(inst)]);
     cpu->regs[rd(inst)] = tmp;
     //print_op("amoswap.w\n", cpu);
 }
 void exec_AMOADD_W(CPU* cpu, uint32_t inst) {
-    // int funct7 = (inst >> 25) & 0x7f;
-    // printf("funct5=%#.8x\n", (funct7 >> 2));
-    uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
-    uint32_t res = tmp + (uint32_t)cpu->regs[rs2(inst)];
-    //cpu->regs[rd(inst)] = tmp;
-    cpu_store(cpu, cpu->regs[rs1(inst)], 32, res);
+    uint64_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 32);
+    cpu_store(cpu, cpu->regs[rs1(inst)], 32, tmp + cpu->regs[rs2(inst)]);
     cpu->regs[rd(inst)] = tmp;
     //print_op("amoadd.w\n", cpu);
 }
@@ -759,20 +754,15 @@ void exec_SC_D(CPU* cpu, uint32_t inst) {}
 void exec_AMOSWAP_D(CPU* cpu, uint32_t inst) {
     // int funct7 = (inst >> 25) & 0x7f;
     // printf("funct5=%#.8x\n", (funct7 >> 2));
-    uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 64);
-    //cpu->regs[rd(inst)] = tmp;
+    uint64_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 64);
     cpu_store(cpu, cpu->regs[rs1(inst)], 64, cpu->regs[rs2(inst)]);
     cpu->regs[rd(inst)] = tmp;
     //print_op("amoswap.d\n", cpu);
 }
 
 void exec_AMOADD_D(CPU* cpu, uint32_t inst) {
-    // int funct7 = (inst >> 25) & 0x7f;
-    // printf("funct5=%#.8x\n", (funct7 >> 2));
-    uint32_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 64);
-    uint32_t res = tmp + (uint32_t)cpu->regs[rs2(inst)];
-    //cpu->regs[rd(inst)] = tmp;
-    cpu_store(cpu, cpu->regs[rs1(inst)], 64, res);
+    uint64_t tmp = cpu_load(cpu, cpu->regs[rs1(inst)], 64);
+    cpu_store(cpu, cpu->regs[rs1(inst)], 64, tmp + cpu->regs[rs2(inst)]);
     cpu->regs[rd(inst)] = tmp;
     //print_op("amoadd.d\n", cpu);
 }
