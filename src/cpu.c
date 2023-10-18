@@ -992,7 +992,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                 case SRIW : 
                     switch (funct7) {
                         case SRLIW: exec_SRLIW(cpu, inst); break;
-                        case SRAIW: exec_SRLIW(cpu, inst); break;
+                        case SRAIW: exec_SRAIW(cpu, inst); break;
                         default:
                             fprintf(stderr, 
                                 "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
