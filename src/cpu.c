@@ -325,7 +325,7 @@ void exec_JAL(CPU* cpu, uint32_t inst) {
     uint64_t imm = imm_J(inst);
     cpu->regs[rd(inst)] = cpu->pc;
     /*//print_op("JAL-> rd:%ld, pc:%lx\n", rd(inst), cpu->pc);*/
-    cpu->pc = cpu->pc + (int64_t) imm - 4;
+    cpu->pc = (cpu->pc + imm) - 4;
     //print_op("jal\n", cpu);
     /*
     if (ADDR_MISALIGNED(cpu->pc)) {
