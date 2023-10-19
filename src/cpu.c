@@ -273,7 +273,7 @@ uint64_t imm_J(uint32_t inst) {
 uint32_t shamt(CPU* cpu, uint32_t inst) {
     // shamt(shift amount) only required for immediate shift instructions
     // shamt[4:5] = imm[5:0]
-    return (uint32_t) ((uint64_t)(cpu->regs[rs2(inst)] & 0x3f)); // TODO: 0x1f / 0x3f ?
+    return (uint32_t) (cpu->regs[rs2(inst)] & 0x3f); // TODO: 0x1f / 0x3f ?
 }
 
 uint32_t shamt_W(CPU* cpu, uint32_t inst) {
@@ -292,7 +292,7 @@ uint32_t shamt_I(uint32_t inst) {
 uint32_t shamt_IW(uint32_t inst) {
     // shamt(shift amount) only required for immediate shift instructions
     // shamt[4:5] = imm[5:0]
-    uint64_t imm = ((int64_t)(int32_t) (inst)) >> 20;
+    uint64_t imm = ((int64_t)(int32_t)(inst)) >> 20;
     return (uint32_t) (imm & 0x1f); // TODO: 0x1f / 0x3f ?
 }
 
@@ -477,7 +477,7 @@ void exec_SLLI(CPU* cpu, uint32_t inst) {
 
 void exec_SLTI(CPU* cpu, uint32_t inst) {
     uint64_t imm = ((int64_t)(int32_t)(inst & 0xfff00000)) >> 20;
-    if (((int64_t)cpu->regs[rs1(inst)]) < ((int64_t)imm)) {
+    if (((int64_t)(cpu->regs[rs1(inst)])) < ((int64_t)imm)) {
         cpu->regs[rd(inst)] = 1;
     } else {
         cpu->regs[rd(inst)] = 0;
@@ -542,7 +542,7 @@ void exec_SUB(CPU* cpu, uint32_t inst) {
 
 void exec_SLL(CPU* cpu, uint32_t inst) {
     //fprintf(cpu->debug_log, "pc=%#-13.2lx  sll=%#-13.2lx << %#-13.2x = %#-13.2lx\n", cpu->pc-4, cpu->regs[rs1(inst)], shamt(inst), cpu->regs[rs1(inst)] << shamt(inst));
-    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] << shamt(cpu, inst);
+    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] << (cpu->regs[rs2(inst)] & 0x3f);
     //print_op("sll\n", cpu);
 }
 
@@ -571,12 +571,12 @@ void exec_XOR(CPU* cpu, uint32_t inst) {
 
 void exec_SRL(CPU* cpu, uint32_t inst) {
     //fprintf(cpu->debug_log, "pc=%#-13.2lx  srl=%#-13.2lx >> %#-13.2x = %#-13.2lx\n", cpu->pc-4, cpu->regs[rs1(inst)], shamt(inst), cpu->regs[rs1(inst)] >> shamt(inst));
-    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] >> shamt(cpu, inst);
+    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] >> (cpu->regs[rs2(inst)] & 0x3f);
     //print_op("srl\n", cpu);
 }
 
 void exec_SRA(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = ((int64_t)cpu->regs[rs1(inst)]) >> shamt(cpu, inst);
+    cpu->regs[rd(inst)] = ((int64_t)cpu->regs[rs1(inst)]) >> (cpu->regs[rs2(inst)] & 0x3f);
     //print_op("sra\n", cpu);
 }
 
@@ -646,11 +646,11 @@ void exec_DIVW(CPU* cpu, uint32_t inst) {
     //print_op("divw\n", cpu);
 }
 void exec_SLLW(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (int32_t) (((uint32_t)cpu->regs[rs1(inst)]) << shamt_W(cpu, inst));
+    cpu->regs[rd(inst)] = (int32_t) ((cpu->regs[rs1(inst)]) << (cpu->regs[rs2(inst)] & 0x1f));
     //print_op("sllw\n", cpu);
 }
 void exec_SRLW(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (int32_t) (((uint32_t)cpu->regs[rs1(inst)]) >> shamt_W(cpu, inst));
+    cpu->regs[rd(inst)] = (int32_t) (((uint32_t)(cpu->regs[rs1(inst)])) >> (cpu->regs[rs2(inst)] & 0x1f));
     //print_op("srlw\n", cpu);
 }
 void exec_DIVU(CPU* cpu, uint32_t inst) {
@@ -661,7 +661,7 @@ void exec_DIVU(CPU* cpu, uint32_t inst) {
     //print_op("divu\n", cpu);
 }
 void exec_SRAW(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (((int32_t)cpu->regs[rs1(inst)]) >> ((int32_t)shamt_W(cpu, inst)));
+    cpu->regs[rd(inst)] = (((int32_t)(cpu->regs[rs1(inst)])) >> ((int32_t)(cpu->regs[rs2(inst)] & 0x1f)));
     //print_op("sraw\n", cpu);
 }
 void exec_REMW(CPU* cpu, uint32_t inst) {
