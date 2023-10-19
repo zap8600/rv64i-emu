@@ -465,7 +465,8 @@ void exec_SD(CPU* cpu, uint32_t inst) {
 
 void exec_ADDI(CPU* cpu, uint32_t inst) {
     uint64_t imm = ((int64_t)(int32_t)(inst & 0xfff00000)) >> 20;
-    cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] + imm;
+    //cpu->regs[rd(inst)] = cpu->regs[rs1(inst)] + imm;
+    __builtin_add_overflow(cpu->regs[rs1(inst)], imm, &(cpu->regs[rd(inst)]))
     //print_op("addi\n", cpu);
 }
 
