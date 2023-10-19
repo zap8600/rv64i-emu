@@ -273,13 +273,13 @@ uint64_t imm_J(uint32_t inst) {
 uint32_t shamt(uint32_t inst) {
     // shamt(shift amount) only required for immediate shift instructions
     // shamt[4:5] = imm[5:0]
-    return (uint32_t) ((uint64_t)(rs2(inst) & 0x3f)); // TODO: 0x1f / 0x3f ?
+    return (uint32_t) ((uint64_t)(cpu->regs[rs2(inst)] & 0x3f)); // TODO: 0x1f / 0x3f ?
 }
 
 uint32_t shamt_W(uint32_t inst) {
     // shamt(shift amount) only required for immediate shift instructions
     // shamt[4:5] = imm[5:0]
-    return (uint32_t) (rs2(inst) & 0x1f); // TODO: 0x1f / 0x3f ?
+    return (uint32_t) (cpu->regs[rs2(inst)] & 0x1f); // TODO: 0x1f / 0x3f ?
 }
 
 uint32_t shamt_I(uint32_t inst) {
@@ -890,7 +890,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     fprintf(stderr, 
                         "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
                         , opcode, funct3, funct7);
-                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    cpu->trap = IllegalInstruction;
                     return 0;
             } break;
 
@@ -907,7 +907,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     fprintf(stderr, 
                         "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
                         , opcode, funct3, funct7);
-                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    cpu->trap = IllegalInstruction;
                     return 0;
             } break;
 
@@ -921,7 +921,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                     fprintf(stderr, 
                         "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
                         , opcode, funct3, funct7);
-                    cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                    cpu->trap = IllegalInstruction;
                     return 0;
             } break;
 
@@ -940,7 +940,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                             fprintf(stderr, 
                                 "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
                                 , opcode, funct3, funct7);
-                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            cpu->trap = IllegalInstruction;
                             return 0;
                     } break;
                 case ORI:   exec_ORI(cpu, inst); break;
@@ -964,7 +964,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                             fprintf(stderr, 
                                 "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
                                 , opcode, funct3, funct7);
-                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            cpu->trap = IllegalInstruction;
                             return 0;
                     } break;
                 case SLL:  exec_SLL(cpu, inst); break;
@@ -979,7 +979,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                             fprintf(stderr, 
                                 "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
                                 , opcode, funct3, funct7);
-                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            cpu->trap = IllegalInstruction;
                             return 0;
                     }
                 case OR:   exec_OR(cpu, inst); break;
@@ -1006,7 +1006,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                             fprintf(stderr, 
                                 "[-] ERROR-> opcode:0x%x, funct3:0x%x, funct7:0x%x\n"
                                 , opcode, funct3, funct7);
-                            cpu->trap = IllegalInstruction;cpu->trap = IllegalInstruction;
+                            cpu->trap = IllegalInstruction;
                             return 0;
                     } break;
             } break;
