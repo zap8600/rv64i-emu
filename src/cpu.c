@@ -509,7 +509,7 @@ void exec_SRLI(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SRAI(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = ((int64_t)cpu->regs[rs1(inst)]) >> shamt_I(inst);
+    cpu->regs[rd(inst)] = ((int64_t)(cpu->regs[rs1(inst)])) >> shamt_I(inst);
     //print_op("srai\n", cpu);
 }
 
@@ -577,7 +577,7 @@ void exec_SRL(CPU* cpu, uint32_t inst) {
 }
 
 void exec_SRA(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = ((int64_t)cpu->regs[rs1(inst)]) >> (cpu->regs[rs2(inst)] & 0x3f);
+    cpu->regs[rd(inst)] = ((int64_t)(cpu->regs[rs1(inst)])) >> (cpu->regs[rs2(inst)] & 0x3f);
     //print_op("sra\n", cpu);
 }
 
@@ -647,7 +647,7 @@ void exec_DIVW(CPU* cpu, uint32_t inst) {
     //print_op("divw\n", cpu);
 }
 void exec_SLLW(CPU* cpu, uint32_t inst) {
-    cpu->regs[rd(inst)] = (int32_t) ((cpu->regs[rs1(inst)]) << (cpu->regs[rs2(inst)] & 0x1f));
+    cpu->regs[rd(inst)] = (int32_t) (((uint32_t)(cpu->regs[rs1(inst)])) << (cpu->regs[rs2(inst)] & 0x1f));
     //print_op("sllw\n", cpu);
 }
 void exec_SRLW(CPU* cpu, uint32_t inst) {
@@ -1020,7 +1020,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                         case SUBW:  exec_SUBW(cpu, inst); break;
                         case MULW:  exec_MULW(cpu, inst); break;
                     } break;
-                case DIVW:  exec_DIVW(cpu, inst); break;
+                // case DIVW:  exec_DIVW(cpu, inst); break;
                 case SLLW:  exec_SLLW(cpu, inst); break;
                 case SRW:
                     switch (funct7) {
@@ -1028,7 +1028,7 @@ int cpu_execute(CPU *cpu, uint32_t inst) {
                         case SRAW:  exec_SRAW(cpu, inst); break;
                         case DIVU: exec_DIVU(cpu, inst); break;
                     } break;
-                case REMW:  exec_REMW(cpu, inst); break;
+                // case REMW:  exec_REMW(cpu, inst); break;
                 case REMUW: exec_REMUW(cpu, inst); break;
                 default:
                     fprintf(stderr, 
