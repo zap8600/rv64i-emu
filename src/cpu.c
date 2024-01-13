@@ -24,7 +24,7 @@ void print_op(char* s, CPU* cpu) {
         default: fprintf(cpu->debug_log, "%s", s); break;
     }
     */
-    fprintf(cpu->debug_log, "%s", s);
+    //fprintf(cpu->debug_log, "%s", s);
 }
 
 void cpu_init(CPU *cpu) {
@@ -56,7 +56,7 @@ void cpu_check_interrupt(CPU* cpu) {
 
     uint64_t irq;
     if (uart_interrupting(&(cpu->bus.uart))) {
-        irq = UART_IRQ;
+        irq = 10;
     } else if (virtio_interrupting(&(cpu->bus.virtio))) {
         virtio_disk_access(cpu);
         irq = VIRTIO_IRQ;
@@ -128,19 +128,19 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
         return addr;
     }
 
-    int64_t levels = 3;
+    uint64_t levels = 3;
     uint64_t vpn[3] = {((addr >> 12) & 0x1ff), ((addr >> 21) & 0x1ff), ((addr >> 30) & 0x1ff)};
 
     uint64_t a = cpu->page_table;
-    int64_t i = levels - 1;
+    uint64_t i = levels - 1;
     uint64_t pte;
     while (1) {
         pte = bus_load(&(cpu->bus), a + vpn[i] * 8, 64);
 
         uint64_t v = pte & 1;
-        uint64_t r = (pte & 1) >> 1;
-        uint64_t w = (pte & 1) >> 2;
-        uint64_t x = (pte & 1) >> 3;
+        uint64_t r = (pte >> 1) & 1;
+        uint64_t w = (pte >> 2) & 1;
+        uint64_t x = (pte >> 3) & 1;
         if (v == 0 || r == 0 && w == 1) {
             switch (access_type) {
                 case Instruction: cpu->trap = InstructionPageFault; return InstructionPageFault;
@@ -153,7 +153,7 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
             break;
         }
         i -= 1;
-        uint64_t ppn = (pte & 0x0fffffffffff) >> 10;
+        uint64_t ppn = (pte >> 10) & 0x0fffffffffff;
         a = ppn * CPU_PAGE_SIZE;
         if (i < 0) {
             switch (access_type) {
@@ -165,15 +165,16 @@ uint64_t cpu_translate(CPU* cpu, uint64_t addr, AccessType access_type) {
     }
 
     uint64_t ppna[3] = {((pte >> 10) & 0x1ff), ((pte >> 19) & 0x1ff), ((pte >> 28) & 0x03ffffff)};
-    uint64_t ppn;
 
     uint64_t offset = addr & 0xfff;
     switch (i) {
         case 0:
-            ppn = (pte & 0x0fffffffffff) >> 10;
+        {
+            uint64_t ppn = (pte & 0x0fffffffffff) >> 10;
             fprintf(stderr, "translate= case=0 return=%lx\n", (ppn << 12) | offset);
             return (ppn << 12) | offset;
             break;
+        }
         case 1:
             fprintf(stderr, "translate= case=1 return=%lx\n", (ppna[2] << 30) | (ppna[1] << 21) | (vpn[0] << 12) | offset);
             return (ppna[2] << 30) | (ppna[1] << 21) | (vpn[0] << 12) | offset;
@@ -1150,10 +1151,10 @@ void dump_registers(CPU *cpu) {
     /*}*/
 
     for (int i=0; i<8; i++) {
-        fprintf(cpu->debug_log, "   %4s: %#-13.2lx  ", abi[i],    cpu->regs[i]);
-        fprintf(cpu->debug_log, "   %2s: %#-13.2lx  ", abi[i+8],  cpu->regs[i+8]);
-        fprintf(cpu->debug_log, "   %2s: %#-13.2lx  ", abi[i+16], cpu->regs[i+16]);
-        fprintf(cpu->debug_log, "   %3s: %#-13.2lx\n", abi[i+24], cpu->regs[i+24]);
+        printf("   %4s: %#-13.2lx  ", abi[i],    cpu->regs[i]);
+        printf("   %2s: %#-13.2lx  ", abi[i+8],  cpu->regs[i+8]);
+        printf("   %2s: %#-13.2lx  ", abi[i+16], cpu->regs[i+16]);
+        printf("   %3s: %#-13.2lx\n", abi[i+24], cpu->regs[i+24]);
     }
 }
 

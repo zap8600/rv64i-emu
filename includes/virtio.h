@@ -6,7 +6,7 @@
 #define VIRTIO_BASE 0x10001000
 #define VIRTIO_SIZE 0x1000
 
-#define VIRTIO_DISK_SIZE 2*1024*1024 // 2 MB disk
+#define VIRTIO_DISK_SIZE 3*1024*1024 // 2 MB disk
 
 #define VIRTIO_IRQ 1
 
@@ -36,7 +36,7 @@ typedef struct VIRTIO {
     uint32_t queue_pfn;
     uint32_t queue_notify;
     uint32_t status;
-    uint8_t disk[VIRTIO_DISK_SIZE];
+    uint8_t *disk;
 } VIRTIO;
 
 void virtio_init(VIRTIO* virtio);
