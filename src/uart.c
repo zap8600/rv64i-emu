@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include "../includes/uart.h"
 
@@ -14,6 +15,7 @@
 
 void *uart_in(void *ptr) {
     UART* uart = (UART*)ptr;
+    /*
     int c;
     if ((c = fgetc(stdin)) != EOF) {
         pthread_mutex_lock(&(uart->data_mutex));
@@ -27,23 +29,44 @@ void *uart_in(void *ptr) {
         uart->data[UART_LSR - UART_BASE] |= UART_LSR_RX;
         pthread_mutex_unlock(&(uart->data_mutex));
     }
-    pthread_mutex_lock(&(uart->intr_mutex));
-    uart->interrupting = false;
-    pthread_mutex_unlock(&(uart->intr_mutex));
+    */
+    while(1) {
+        char c = 0;
+        if ((read(fileno(stdin), (char*)&c, 1)) > 0) {
+            pthread_mutex_lock(&(uart->data_mutex));
+            while ((uart->data[UART_LSR - UART_BASE] & UART_LSR_RX) == 1) {
+                pthread_cond_wait(&(uart->cond), &(uart->data_mutex));
+            }
+            uart->data[0] = c;
+            pthread_mutex_lock(&(uart->intr_mutex));
+            uart->interrupting = true;
+            pthread_mutex_unlock(&(uart->intr_mutex));
+            uart->data[UART_LSR - UART_BASE] |= UART_LSR_RX;
+            pthread_mutex_unlock(&(uart->data_mutex));
+        }
+        pthread_mutex_lock(&(uart->intr_mutex));
+        uart->interrupting = false;
+        pthread_mutex_unlock(&(uart->intr_mutex));
+    }
 }
 
 void uart_init(UART* uart) {
+    uart->data = malloc(UART_SIZE);
+    uart->data[UART_LSR - UART_BASE] |= UART_LSR_TX;
+    uart->interrupting = false;
     pthread_create(&(uart->rx_thread), NULL, &uart_in, uart);
 }
 
 uint64_t uart_load_8(UART* uart, uint64_t addr) {
+    uint8_t data;
     pthread_mutex_lock(&(uart->data_mutex));
     switch (addr) {
         case UART_RHR:
             pthread_cond_broadcast(&(uart->cond));
-            uart->data[UART_LSR - UART_BASE] &= !UART_LSR_RX;
+            uart->data[UART_LSR - UART_BASE] &= ~UART_LSR_RX;
+            data = uart->data[UART_RHR - UART_BASE];
             pthread_mutex_unlock(&(uart->data_mutex));
-            return uart->data[UART_RHR - UART_BASE];
+            return data;
             break;
         default:
             pthread_mutex_unlock(&(uart->data_mutex));
@@ -67,6 +90,8 @@ void uart_store_8(UART* uart, uint64_t addr, uint64_t value) {
         case UART_THR:
             printf("%c", (uint8_t)value);
             fflush(stdout);
+            //fprintf(stderr, "%c", (uint8_t)value); // for debug so that reg & csr go to log
+            //fflush(stderr); // and uart out goes to terminal
             break;
         default: uart->data[addr - UART_BASE] = (uint8_t)value; break;
     }

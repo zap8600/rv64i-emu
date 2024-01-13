@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <termios.h>
+#include <unistd.h>
 #include "./includes/cpu.h"
 
 struct CPU cpu;
@@ -79,22 +83,40 @@ void read_disk(CPU* cpu, char *filename)
     free(buffer);
 }
 
+void open_debug(CPU* cpu, char *filename) {
+    cpu->debug_log = fopen(filename, "w");
+}
+
 void exitEmu() {
+    struct termios term;
+	tcgetattr(0, &term);
+	term.c_lflag |= ICANON | ECHO;
+	tcsetattr(0, TCSANOW, &term);
     free(cpu.bus.dram.mem);
+    free(cpu.bus.uart.data);
+    printf("\npc=%#.8lx\n", cpu.pc-4);
+    dump_registers(&cpu);
+    dump_csr(&cpu);
+    fclose(cpu.debug_log);
     exit(0);
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        printf("Usage: %s <filename> <disk>\n", argv[0]);
+    if (argc != 4) {
+        printf("Usage: %s <filename> <disk> <debug log>\n", argv[0]);
         return 1;
     }
 
     cpu_init(&cpu);
     read_bin(&cpu, argv[1]);
     read_disk(&cpu, argv[2]);
+    open_debug(&cpu, argv[3]);
 
     signal(SIGINT, exitEmu);
+    struct termios term;
+    tcgetattr(0, &term);
+    term.c_lflag &= ~(ICANON | ECHO); // Disable echo as well
+    tcsetattr(0, TCSANOW, &term);
 
     while (1) {
         // fetch
@@ -120,16 +142,18 @@ int main(int argc, char* argv[]) {
 
         /*
         if (cpu.enable_paging) {
-            printf("paging on!\n");
+            printf("paging is on\n");
         } else {
-            printf("paging off!\n");
+            printf("paging is off\n");
         }
         */
-        dump_registers(&cpu);
-        dump_csr(&cpu);
+
+        //dump_registers(&cpu);
+        //dump_csr(&cpu);
     }
     dump_registers(&cpu);
     printf("\n");
     dump_csr(&cpu);
+    exitEmu();
     return 0;
 }
