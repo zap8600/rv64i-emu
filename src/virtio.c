@@ -4,7 +4,6 @@
 #include "../includes/virtio.h"
 
 void virtio_init(VIRTIO* virtio) {
-    virtio->disk = malloc(VIRTIO_DISK_SIZE);
     virtio->id = 0;
     virtio->driver_features = 0;
     virtio->page_size = 0;

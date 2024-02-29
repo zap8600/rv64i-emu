@@ -79,6 +79,7 @@ void read_disk(CPU* cpu, char *filename)
     /*}*/
     /*printf("\n");*/
 
+    cpu->bus.virtio.disk = malloc(fileLen+1);
     memcpy(cpu->bus.virtio.disk, buffer, fileLen*sizeof(uint8_t));
     free(buffer);
 }
