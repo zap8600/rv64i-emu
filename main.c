@@ -25,7 +25,7 @@ int main(int argc, char**argv) {
     cpu.regs[2] = (128 * 1024 * 1024);
     cpu.pc = 0;
     while(cpu.pc < len) {
-        uint32_t inst = (uint32_t)cpu.code[pc] | ((uint32_t)cpu.code[pc + 1]) << 8 | ((uint32_t)cpu.code[pc + 2]) << 16 | ((uint32_t)cpu.code[pc + 3]) << 24;
+        uint32_t inst = (uint32_t)cpu.code[cpu.pc] | ((uint32_t)cpu.code[cpu.pc + 1]) << 8 | ((uint32_t)cpu.code[cpu.pc + 2]) << 16 | ((uint32_t)cpu.code[cpu.pc + 3]) << 24;
         cpu.pc += 4;
         uint32_t op = inst & 0x7f;
         switch(op) {
