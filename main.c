@@ -51,4 +51,6 @@ int main(int argc, char**argv) {
         }
     }
     printf("x29: 0x%x, x30: 0x%x, x31: 0x%x\n", cpu.regs[29], cpu.regs[30], cpu.regs[31]);
+    free(cpu.code);
+    return 0;
 }
