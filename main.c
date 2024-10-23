@@ -31,13 +31,24 @@ int main(int argc, char**argv) {
         switch(op) {
             case 0x13:
             {
-                uint64_t imm = (((int64_t)(int32_t)(inst & 0xfe000000)));
+                // ADDI
+                uint64_t imm = (uint64_t)(((int64_t)(int32_t)(inst & 0xfff00000)) >> 20);
+                cpu.regs[((inst & 0xf80) >> 7)] = cpu.regs[((inst & 0xf8000) >> 15)] + imm;
                 break;
             }
             case 0x33:
             {
                 // ADD
+                cpu.regs[((inst & 0xf80) >> 7)] = cpu.regs[((inst & 0xf8000) >> 15)] + cpu.regs[((inst & 0x1f00000) >> 20)];
+                break;
+            }
+            default:
+            {
+                fprintf(stderr, "Unknown instruction!\n");
+                free(cpu.code);
+                return -1;
             }
         }
     }
+    printf("x29: 0x%x, x30: 0x%x, x31: 0x%x\n", cpu.regs[29], cpu.regs[30], cpu.regs[31]);
 }
